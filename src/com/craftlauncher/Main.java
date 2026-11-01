@@ -173,7 +173,7 @@ public class Main extends JFrame {
         });
 
         // Brand Left
-        JPanel brandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 10));
+        JPanel brandPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         brandPanel.setOpaque(false);
 
         JPanel logoBadge = new JPanel(new GridBagLayout()) {
@@ -188,9 +188,7 @@ public class Main extends JFrame {
         };
         logoBadge.setPreferredSize(new Dimension(30, 30));
         logoBadge.setOpaque(false);
-        JLabel logoPick = new JLabel("MC");
-        logoPick.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        logoPick.setForeground(Color.WHITE);
+        JLabel logoPick = new JLabel(Icons.fa(Icons.CUBE, 16, Color.WHITE));
         logoBadge.add(logoPick);
 
         JPanel titleBlock = new JPanel(new GridLayout(2, 1, 0, 0));
@@ -221,7 +219,7 @@ public class Main extends JFrame {
         titlebar.add(brandPanel, BorderLayout.WEST);
 
         // Center: Navigation Tabs with FontAwesome icons
-        JPanel navTabsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
+        JPanel navTabsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 8));
         navTabsPanel.setOpaque(false);
 
         btnTabPlay = createNavTab("ИГРАТЬ", Icons.tabPlay(13, null), "play", true);
@@ -236,7 +234,7 @@ public class Main extends JFrame {
         titlebar.add(navTabsPanel, BorderLayout.CENTER);
 
         // Right: Tools, Theme Dots & Window Controls
-        JPanel rightBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        JPanel rightBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         rightBar.setOpaque(false);
 
         // Quick folder button
@@ -244,7 +242,7 @@ public class Main extends JFrame {
         rightBar.add(btnOpenGameDir);
 
         // Theme Switcher dots panel
-        JPanel themeDotsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 15));
+        JPanel themeDotsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 15));
         themeDotsPanel.setOpaque(false);
         for (UITheme theme : UITheme.ALL_THEMES.values()) {
             JButton dot = new JButton() {
@@ -280,12 +278,12 @@ public class Main extends JFrame {
         // Window Controls
         JPanel winCtrlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         winCtrlPanel.setOpaque(false);
-        JButton btnMin = createWinControlBtn("—", e -> setState(Frame.ICONIFIED), false);
-        JButton btnMax = createWinControlBtn("□", e -> {
+        JButton btnMin = createWinControlBtn(Icons.winMin(12, null), e -> setState(Frame.ICONIFIED), false);
+        JButton btnMax = createWinControlBtn(Icons.winMax(11, null), e -> {
             if (getExtendedState() == JFrame.MAXIMIZED_BOTH) setExtendedState(JFrame.NORMAL);
             else setExtendedState(JFrame.MAXIMIZED_BOTH);
         }, false);
-        JButton btnClose = createWinControlBtn("✕", e -> System.exit(0), true);
+        JButton btnClose = createWinControlBtn(Icons.winClose(13, null), e -> System.exit(0), true);
 
         winCtrlPanel.add(btnMin);
         winCtrlPanel.add(btnMax);
@@ -324,16 +322,16 @@ public class Main extends JFrame {
                 super.paintComponent(g);
             }
         };
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 11));
         btn.setForeground(active ? currentTheme.accentPrimary : new Color(0x94, 0xA3, 0xB8));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(6, 12, 6, 12));
+        btn.setBorder(new EmptyBorder(5, 8, 5, 8));
         if (icon != null) {
-            btn.setIconTextGap(7);
+            btn.setIconTextGap(6);
         }
         btn.addActionListener(e -> {
             contentLayout.show(contentCards, cardName);
@@ -353,26 +351,28 @@ public class Main extends JFrame {
         }
     }
 
-    private JButton createWinControlBtn(String text, ActionListener l, boolean isClose) {
-        JButton btn = new JButton(text);
-        btn.setPreferredSize(new Dimension(48, 50));
-        btn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        btn.setForeground(new Color(0x82, 0x8F, 0xA3));
+    private JButton createWinControlBtn(Icon icon, ActionListener l, boolean isClose) {
+        JButton btn = new JButton(icon);
+        btn.setPreferredSize(new Dimension(46, 38));
+        btn.setForeground(new Color(0x94, 0xA3, 0xB8));
         btn.setFocusPainted(false);
         btn.setBorderPainted(false);
         btn.setContentAreaFilled(false);
+        btn.setOpaque(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
-                btn.setContentAreaFilled(true);
-                btn.setBackground(isClose ? new Color(0xE1, 0x1D, 0x48) : new Color(0x1C, 0x21, 0x30));
                 btn.setForeground(Color.WHITE);
+                btn.setContentAreaFilled(true);
+                btn.setOpaque(true);
+                btn.setBackground(isClose ? new Color(0xE1, 0x1D, 0x48) : new Color(0x22, 0x29, 0x3D));
             }
             @Override
             public void mouseExited(MouseEvent e) {
+                btn.setForeground(new Color(0x94, 0xA3, 0xB8));
                 btn.setContentAreaFilled(false);
-                btn.setForeground(new Color(0x82, 0x8F, 0xA3));
+                btn.setOpaque(false);
             }
         });
         btn.addActionListener(l);
@@ -493,7 +493,7 @@ public class Main extends JFrame {
             }
         };
         mojangPill.setOpaque(false);
-        JLabel mDot = new JLabel(Icons.dot(10, currentTheme.accentPrimary));
+        JLabel mDot = new JLabel(Icons.checkCircle(11, new Color(0x4A, 0xDE, 0x80)));
         JLabel mText = new JLabel("Mojang API • Онлайн");
         mText.setFont(new Font("Segoe UI", Font.BOLD, 11));
         mText.setForeground(new Color(0xCB, 0xD5, 0xE1));
@@ -562,10 +562,10 @@ public class Main extends JFrame {
 
         JPanel avChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         avChips.setOpaque(false);
-        avChips.add(createChipButton("Стив", e -> switchAvatar("steve")));
-        avChips.add(createChipButton("Алекс", e -> switchAvatar("alex")));
-        avChips.add(createChipButton("Крипер", e -> switchAvatar("creeper")));
-        avChips.add(createChipButton("Эндермен", e -> switchAvatar("enderman")));
+        avChips.add(createChipButton("Стив", Icons.user(11, new Color(0x60, 0xA5, 0xFA)), e -> switchAvatar("steve")));
+        avChips.add(createChipButton("Алекс", Icons.user(11, new Color(0xFB, 0x92, 0x3C)), e -> switchAvatar("alex")));
+        avChips.add(createChipButton("Крипер", Icons.creeper(11, new Color(0x4A, 0xDE, 0x80)), e -> switchAvatar("creeper")));
+        avChips.add(createChipButton("Эндермен", Icons.enderman(11, new Color(0xC0, 0x84, 0xFC)), e -> switchAvatar("enderman")));
         cardPlayer.add(avChips);
         cardPlayer.add(Box.createVerticalStrut(12));
 
@@ -578,10 +578,10 @@ public class Main extends JFrame {
 
         JPanel nickChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         nickChips.setOpaque(false);
-        nickChips.add(createChipButton("Player", e -> setQuickNick("Player")));
-        nickChips.add(createChipButton("Steve", e -> setQuickNick("Steve")));
-        nickChips.add(createChipButton("Alex", e -> setQuickNick("Alex")));
-        nickChips.add(createChipButton("Crafter", e -> setQuickNick("Crafter")));
+        nickChips.add(createChipButton("Player", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Player")));
+        nickChips.add(createChipButton("Steve", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Steve")));
+        nickChips.add(createChipButton("Alex", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Alex")));
+        nickChips.add(createChipButton("Crafter", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Crafter")));
         cardPlayer.add(nickChips);
 
         cardPlayer.add(Box.createVerticalGlue());
@@ -645,7 +645,7 @@ public class Main extends JFrame {
 
         JPanel loaderChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         loaderChips.setOpaque(false);
-        loaderChips.add(createChipButton("Все", e -> filterVersionsByLoader("all")));
+        loaderChips.add(createChipButton("Все", Icons.all(12, new Color(0x94, 0xA3, 0xB8)), e -> filterVersionsByLoader("all")));
         loaderChips.add(createChipButton("OptiFine", Icons.optifine(12, new Color(0x38, 0xBD, 0xF8)), e -> filterVersionsByLoader("optifine")));
         loaderChips.add(createChipButton("Fabric", Icons.fabric(12, new Color(0xF5, 0x9E, 0x0B)), e -> filterVersionsByLoader("fabric")));
         loaderChips.add(createChipButton("Forge", Icons.forge(12, new Color(0xEF, 0x44, 0x44)), e -> filterVersionsByLoader("forge")));
@@ -684,10 +684,10 @@ public class Main extends JFrame {
         JPanel verChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         verChips.setOpaque(false);
         verChips.add(createChipButton("1.21.4", Icons.star(11, new Color(0xFA, 0xCC, 0x15)), e -> selectQuickVersion("1.21.4")));
-        verChips.add(createChipButton("1.20.4", e -> selectQuickVersion("1.20.4")));
-        verChips.add(createChipButton("1.16.5", e -> selectQuickVersion("1.16.5")));
-        verChips.add(createChipButton("1.12.2", e -> selectQuickVersion("1.12.2")));
-        verChips.add(createChipButton("Последний", e -> selectQuickVersion("latest")));
+        verChips.add(createChipButton("1.20.4", Icons.check(11, new Color(0x38, 0xBD, 0xF8)), e -> selectQuickVersion("1.20.4")));
+        verChips.add(createChipButton("1.16.5", Icons.history(11, new Color(0xA8, 0x55, 0xF7)), e -> selectQuickVersion("1.16.5")));
+        verChips.add(createChipButton("1.12.2", Icons.gem(11, new Color(0x34, 0xD3, 0x99)), e -> selectQuickVersion("1.12.2")));
+        verChips.add(createChipButton("Последний", Icons.latest(11, new Color(0xF8, 0x71, 0x71)), e -> selectQuickVersion("latest")));
         cardVersion.add(verChips);
         cardVersion.add(Box.createVerticalStrut(8));
 
@@ -700,7 +700,7 @@ public class Main extends JFrame {
 
         JPanel folderChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         folderChips.setOpaque(false);
-        folderChips.add(createChipButton("Папка модов", Icons.folder(12, new Color(0xFB, 0xBF, 0x24)), e -> openSubFolder("mods")));
+        folderChips.add(createChipButton("Папка модов", Icons.mods(12, new Color(0xFB, 0xBF, 0x24)), e -> openSubFolder("mods")));
         folderChips.add(createChipButton("Шейдеры", Icons.shader(12, new Color(0xE8, 0x79, 0xF9)), e -> openSubFolder("shaderpacks")));
         folderChips.add(createChipButton("Ресурспаки", Icons.palette(12, new Color(0x38, 0xBD, 0xF8)), e -> openSubFolder("resourcepacks")));
         cardVersion.add(folderChips);
@@ -769,7 +769,8 @@ public class Main extends JFrame {
 
         JPanel statusRow = new JPanel(new BorderLayout());
         statusRow.setOpaque(false);
-        lblStatus = new JLabel("Готов к запуску");
+        lblStatus = new JLabel("Готов к запуску", Icons.checkCircle(14, currentTheme.accentPrimary), JLabel.LEFT);
+        lblStatus.setIconTextGap(8);
         lblStatus.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblStatus.setForeground(Color.WHITE);
         lblPercent = new JLabel("");
@@ -1349,14 +1350,25 @@ public class Main extends JFrame {
         lblSummary.setText("Игрок: " + config.nickname + " • Сборка: " + ver + " • Память: " + String.format("%.1f", config.ramMb / 1024.0) + " ГБ RAM");
     }
 
+    private void setStatus(String text, Icon icon) {
+        lblStatus.setText(text);
+        if (icon != null) {
+            lblStatus.setIcon(icon);
+        }
+    }
+
+    private void setStatus(String text) {
+        setStatus(text, null);
+    }
+
     private void openDirectory(String path) {
         try {
             File dir = new File(path);
             if (!dir.exists()) dir.mkdirs();
             Desktop.getDesktop().open(dir);
-            lblStatus.setText("Открыта папка: " + dir.getName());
+            setStatus("Открыта папка: " + dir.getName(), Icons.folder(14, currentTheme.accentPrimary));
         } catch (Exception e) {
-            lblStatus.setText("Ошибка открытия папки: " + e.getMessage());
+            setStatus("Ошибка открытия папки: " + e.getMessage(), Icons.winClose(14, new Color(0xF4, 0x3F, 0x5E)));
         }
     }
 
@@ -1375,7 +1387,7 @@ public class Main extends JFrame {
 
     private void loadInitialData() {
         try {
-            lblStatus.setText("Синхронизация версий с серверов Mojang...");
+            setStatus("Синхронизация версий с серверов Mojang...", Icons.refresh(14, currentTheme.accentPrimary));
             Downloader.ManifestResult manifest = downloader.getManifest();
             allVersions = manifest.versions;
 
@@ -1394,11 +1406,11 @@ public class Main extends JFrame {
                         }
                     }
                 }
-                lblStatus.setText("Готов к запуску");
+                setStatus("Готов к запуску", Icons.checkCircle(14, currentTheme.accentPrimary));
                 updateSummaryLine();
             });
         } catch (Exception e) {
-            SwingUtilities.invokeLater(() -> lblStatus.setText("Готов к запуску (офлайн)"));
+            SwingUtilities.invokeLater(() -> setStatus("Готов к запуску (офлайн)", Icons.checkCircle(14, currentTheme.accentPrimary)));
         }
     }
 
@@ -1408,20 +1420,20 @@ public class Main extends JFrame {
 
         btnPlay.setEnabled(false);
         progressBar.setValue(0);
-        lblStatus.setText("Подготовка к запуску " + sel.id + "...");
+        setStatus("Подготовка к запуску " + sel.id + "...", Icons.refresh(14, currentTheme.accentPrimary));
 
         new Thread(() -> {
             try {
                 downloader.downloadVersion(sel.id, sel.url, config.gameDir, report -> {
                     SwingUtilities.invokeLater(() -> {
-                        lblStatus.setText(report.status);
+                        setStatus(report.status, Icons.refresh(14, currentTheme.accentPrimary));
                         progressBar.setValue((int) report.percent);
                         lblPercent.setText((int) report.percent + "%");
                     });
                 });
 
                 SwingUtilities.invokeLater(() -> {
-                    lblStatus.setText("Запуск Minecraft " + sel.id + "...");
+                    setStatus("Запуск Minecraft " + sel.id + "...", Icons.play(14, currentTheme.accentPrimary));
                     progressBar.setValue(100);
                     lblPercent.setText("100%");
                 });
@@ -1436,7 +1448,7 @@ public class Main extends JFrame {
                 SwingUtilities.invokeLater(() -> {
                     statusBadge.setVisible(true);
                     btnStopGame.setVisible(true);
-                    lblStatus.setText("Minecraft " + sel.id + " запущен!");
+                    setStatus("Minecraft " + sel.id + " запущен!", Icons.play(14, new Color(0x4A, 0xDE, 0x80)));
                 });
 
                 runningProcess.waitFor();
@@ -1445,13 +1457,13 @@ public class Main extends JFrame {
                     statusBadge.setVisible(false);
                     btnStopGame.setVisible(false);
                     btnPlay.setEnabled(true);
-                    lblStatus.setText("Minecraft закрыт");
+                    setStatus("Minecraft закрыт", Icons.checkCircle(14, currentTheme.accentPrimary));
                 });
 
             } catch (Exception ex) {
                 SwingUtilities.invokeLater(() -> {
                     btnPlay.setEnabled(true);
-                    lblStatus.setText("Ошибка запуска: " + ex.getMessage());
+                    setStatus("Ошибка запуска: " + ex.getMessage(), Icons.winClose(14, new Color(0xF4, 0x3F, 0x5E)));
                     JOptionPane.showMessageDialog(this, "Не удалось запустить игру:\n" + ex.getMessage(), "Ошибка запуска", JOptionPane.ERROR_MESSAGE);
                 });
             }
@@ -1461,7 +1473,7 @@ public class Main extends JFrame {
     private void stopGame() {
         if (runningProcess != null && runningProcess.isAlive()) {
             runningProcess.destroyForcibly();
-            lblStatus.setText("Minecraft был принудительно остановлен.");
+            setStatus("Minecraft был принудительно остановлен.", Icons.stop(14, new Color(0xF4, 0x3F, 0x5E)));
         }
     }
 

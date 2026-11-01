@@ -63,6 +63,7 @@ public class Icons {
     public static final String GEAR = "\uf013";
     public static final String TERMINAL = "\uf120";
     public static final String INFO = "\uf05a";
+    public static final String CHECK_CIRCLE = "\uf058";
     public static final String PLAY = "\uf04b";
     public static final String STOP = "\uf04d";
     public static final String FOLDER = "\uf07b";
@@ -84,32 +85,81 @@ public class Icons {
     public static final String CHECK = "\uf00c";
     public static final String MICROCHIP = "\uf2db";
     public static final String COFFEE = "\uf0f4";
+    public static final String BOLT = "\uf0e7";
+    public static final String GEM = "\uf3a5";
+    public static final String FLASK = "\uf0c3";
+    public static final String LIST = "\uf03a";
+    public static final String LAYERS = "\uf5fd";
+    public static final String DESKTOP = "\uf108";
+    public static final String EXPAND = "\uf065";
+    public static final String POWER_OFF = "\uf011";
+    public static final String CLOCK = "\uf017";
+    public static final String HISTORY = "\uf1da";
+    public static final String GHOST = "\uf6e2";
+    public static final String EYE = "\uf06e";
+    public static final String BOMB = "\uf1e2";
+    public static final String TAG = "\uf02b";
+    public static final String CODE = "\uf121";
+    public static final String MINUS = "\uf068";
+    public static final String SQUARE = "\uf0c8";
+    public static final String XMARK = "\uf00d";
 
-    // Standard Icon helpers
+    // Nav tabs
     public static Icon tabPlay(float size, Color color) { return fa(GAMEPAD, size, color); }
     public static Icon tabSettings(float size, Color color) { return fa(GEAR, size, color); }
     public static Icon tabConsole(float size, Color color) { return fa(TERMINAL, size, color); }
     public static Icon tabAbout(float size, Color color) { return fa(INFO, size, color); }
 
+    // Actions & controls
     public static Icon play(float size, Color color) { return fa(PLAY, size, color); }
     public static Icon stop(float size, Color color) { return fa(STOP, size, color); }
     public static Icon folder(float size, Color color) { return fa(FOLDER_OPEN, size, color); }
+    public static Icon folderClosed(float size, Color color) { return fa(FOLDER, size, color); }
     public static Icon refresh(float size, Color color) { return fa(SYNC, size, color); }
+    public static Icon checkCircle(float size, Color color) { return fa(CHECK_CIRCLE, size, color); }
+    public static Icon check(float size, Color color) { return fa(CHECK, size, color); }
+    public static Icon copy(float size, Color color) { return fa(COPY, size, color); }
+    public static Icon trash(float size, Color color) { return fa(TRASH, size, color); }
+    public static Icon power(float size, Color color) { return fa(POWER_OFF, size, color); }
+
+    // Modloaders & versions
+    public static Icon all(float size, Color color) { return fa(LAYERS, size, color); }
     public static Icon optifine(float size, Color color) { return fa(SPARKLES, size, color); }
     public static Icon fabric(float size, Color color) { return fa(CUBES, size, color); }
     public static Icon forge(float size, Color color) { return fa(HAMMER, size, color); }
     public static Icon forgeOptifine(float size, Color color) { return fa(SHIELD, size, color); }
     public static Icon vanilla(float size, Color color) { return fa(CUBE, size, color); }
     public static Icon star(float size, Color color) { return fa(STAR, size, color); }
-    public static Icon lock(float size, Color color) { return fa(LOCK, size, color); }
+    public static Icon latest(float size, Color color) { return fa(BOLT, size, color); }
+    public static Icon gem(float size, Color color) { return fa(GEM, size, color); }
+    public static Icon history(float size, Color color) { return fa(HISTORY, size, color); }
+    public static Icon clock(float size, Color color) { return fa(CLOCK, size, color); }
+    public static Icon flask(float size, Color color) { return fa(FLASK, size, color); }
+
+    // Profile & Avatars
     public static Icon user(float size, Color color) { return fa(USER, size, color); }
+    public static Icon lock(float size, Color color) { return fa(LOCK, size, color); }
+    public static Icon tag(float size, Color color) { return fa(TAG, size, color); }
+    public static Icon creeper(float size, Color color) { return fa(BOMB, size, color); }
+    public static Icon enderman(float size, Color color) { return fa(EYE, size, color); }
+    public static Icon ghost(float size, Color color) { return fa(GHOST, size, color); }
+
+    // Customization & folders
     public static Icon mods(float size, Color color) { return fa(BOX_OPEN, size, color); }
     public static Icon shader(float size, Color color) { return fa(SUN, size, color); }
     public static Icon palette(float size, Color color) { return fa(PALETTE, size, color); }
-    public static Icon copy(float size, Color color) { return fa(COPY, size, color); }
-    public static Icon trash(float size, Color color) { return fa(TRASH, size, color); }
+
+    // Settings
     public static Icon ram(float size, Color color) { return fa(MICROCHIP, size, color); }
     public static Icon java(float size, Color color) { return fa(COFFEE, size, color); }
+    public static Icon desktop(float size, Color color) { return fa(DESKTOP, size, color); }
+    public static Icon expand(float size, Color color) { return fa(EXPAND, size, color); }
+    public static Icon code(float size, Color color) { return fa(CODE, size, color); }
+
+    // Window controls
+    public static Icon winMin(float size, Color color) { return fa(MINUS, size, color); }
+    public static Icon winMax(float size, Color color) { return fa(SQUARE, size, color); }
+    public static Icon winClose(float size, Color color) { return fa(XMARK, size, color); }
 
     // Native Status Dot
     public static Icon dot(int size, Color color) {
