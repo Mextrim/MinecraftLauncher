@@ -18,45 +18,93 @@ public class Runner {
     ) throws Exception {
 
         Path base = Paths.get(config.gameDir);
-        Path versionsDir = base.resolve("versions").resolve(versionId);
-        Path clientJar = versionsDir.resolve(versionId + ".jar");
-        Path nativesDir = versionsDir.resolve(versionId + "-natives");
-        Path librariesDir = base.resolve("libraries");
-        Path assetsDir = base.resolve("assets");
+        String baseVer = versionId.contains(" (") ? versionId.substring(0, versionId.indexOf(" (")) : versionId;
 
-        if (!Files.exists(clientJar) && versionId.contains(" (")) {
-            String baseVer = versionId.substring(0, versionId.indexOf(" ("));
-            Path baseJar = base.resolve("versions").resolve(baseVer).resolve(baseVer + ".jar");
-            if (Files.exists(baseJar)) {
-                Files.createDirectories(versionsDir);
-                Files.copy(baseJar, clientJar, StandardCopyOption.REPLACE_EXISTING);
+        boolean isForge = versionId.contains("Forge") || versionId.contains("YOLO");
+
+        // Target version directories & JSON
+        String targetVerId = versionId;
+        Path targetVersionJson = null;
+
+        if (isForge && "1.20.1".equals(baseVer)) {
+            targetVerId = "1.20.1-forge-47.3.0";
+            targetVersionJson = base.resolve("versions").resolve(targetVerId).resolve(targetVerId + ".json");
+        } else {
+            Path directJson = base.resolve("versions").resolve(versionId).resolve(versionId + ".json");
+            if (Files.exists(directJson)) {
+                targetVersionJson = directJson;
+            } else {
+                Path baseJson = base.resolve("versions").resolve(baseVer).resolve(baseVer + ".json");
+                if (Files.exists(baseJson)) {
+                    targetVersionJson = baseJson;
+                }
             }
         }
 
+        Path baseClientJar = base.resolve("versions").resolve(baseVer).resolve(baseVer + ".jar");
+        Path versionsDir = base.resolve("versions").resolve(versionId);
+        Path clientJar = baseClientJar;
+
         if (!Files.exists(clientJar)) {
-            throw new FileNotFoundException("Файл клиента не найден: " + clientJar);
+            clientJar = versionsDir.resolve(versionId + ".jar");
         }
 
+        Path nativesDir = versionsDir.resolve(versionId + "-natives");
+        if (!Files.exists(nativesDir)) {
+            nativesDir = base.resolve("versions").resolve(baseVer).resolve(baseVer + "-natives");
+        }
+
+        Path librariesDir = base.resolve("libraries");
+        Path assetsDir = base.resolve("assets");
+
+        // Determine Java executable
         String javaExecutable = config.javaPath;
         if (javaExecutable == null || javaExecutable.isBlank() || !new File(javaExecutable).exists()) {
-            List<JavaDetector.JavaItem> javas = JavaDetector.detect();
-            javaExecutable = !javas.isEmpty() ? javas.get(0).path : "java";
+            javaExecutable = findBestJava(base, isForge, baseVer);
+        } else if (isForge && "1.20.1".equals(baseVer)) {
+            // Check if user selected Java is incompatible with Mixin/ASM in 1.20.1 Forge
+            int ver = JavaDetector.parseVersion(javaExecutable);
+            if (ver > 21 || ver < 17) {
+                String safeJava = findBestJava(base, true, baseVer);
+                if (safeJava != null && !safeJava.isBlank()) {
+                    onLog.accept("[JavaRunner] Внимание: Java " + ver + " несовместима с модами 1.20.1. Переключение на: " + safeJava);
+                    javaExecutable = safeJava;
+                }
+            }
         }
 
         onLog.accept("[JavaRunner] Используется Java: " + javaExecutable);
         onLog.accept("[JavaRunner] Рабочая папка: " + base);
-        onLog.accept("[JavaRunner] Версия игры: " + versionId);
+        onLog.accept("[JavaRunner] Версия игры: " + versionId + (isForge ? " (Forge Runtime: " + targetVerId + ")" : ""));
 
-        // Collect classpath
-        List<String> classPaths = new ArrayList<>();
-        if (Files.exists(librariesDir)) {
+        // Build classpath with forward slashes
+        Set<String> classPaths = new LinkedHashSet<>();
+
+        if (targetVersionJson != null && Files.exists(targetVersionJson)) {
+            addClasspathFromVersionJson(targetVersionJson, librariesDir, classPaths);
+        }
+        Path baseJson = base.resolve("versions").resolve(baseVer).resolve(baseVer + ".json");
+        if (Files.exists(baseJson)) {
+            addClasspathFromVersionJson(baseJson, librariesDir, classPaths);
+        }
+
+        if (classPaths.isEmpty() && Files.exists(librariesDir)) {
             try (var stream = Files.walk(librariesDir)) {
                 stream.filter(p -> p.toString().toLowerCase().endsWith(".jar"))
-                    .forEach(p -> classPaths.add(p.toAbsolutePath().toString()));
+                    .forEach(p -> classPaths.add(p.toAbsolutePath().toString().replace('\\', '/')));
             }
         }
-        classPaths.add(clientJar.toAbsolutePath().toString());
+
+        if (Files.exists(clientJar)) {
+            classPaths.add(clientJar.toAbsolutePath().toString().replace('\\', '/'));
+        } else if (Files.exists(baseClientJar)) {
+            classPaths.add(baseClientJar.toAbsolutePath().toString().replace('\\', '/'));
+        }
+
+        // Write classpath to argument file (using forward slashes to avoid escape char issues)
+        Path argFile = base.resolve("minecraft_args.txt");
         String combinedClasspath = String.join(";", classPaths);
+        Files.writeString(argFile, "-cp\n\"" + combinedClasspath + "\"\n", StandardCharsets.UTF_8);
 
         String offlineUuid = generateOfflineUuid(config.nickname);
 
@@ -65,8 +113,6 @@ public class Runner {
         command.add("-Xms512M");
         command.add("-Xmx" + config.ramMb + "M");
         command.add("-Djava.library.path=" + nativesDir.toAbsolutePath());
-        command.add("-Dminecraft.launcher.brand=CraftLauncherJava");
-        command.add("-Dminecraft.launcher.version=2.0");
 
         if (config.customJvmArgs != null && !config.customJvmArgs.isBlank()) {
             for (String arg : config.customJvmArgs.split(" ")) {
@@ -74,15 +120,53 @@ public class Runner {
             }
         }
 
-        command.add("-cp");
-        command.add(combinedClasspath);
-        command.add("net.minecraft.client.main.Main");
+        String mainClass = "net.minecraft.client.main.Main";
+        List<String> forgeGameArgs = new ArrayList<>();
 
+        if (isForge && targetVersionJson != null && Files.exists(targetVersionJson)) {
+            MiniJson.Value forgeJson = MiniJson.parse(Files.readString(targetVersionJson));
+            mainClass = forgeJson.get("mainClass").asString("cpw.mods.bootstraplauncher.BootstrapLauncher");
+
+            // JVM arguments from Forge JSON
+            MiniJson.Value jvmArr = forgeJson.get("arguments").get("jvm");
+            if (jvmArr.isArray()) {
+                String libDirStr = librariesDir.toAbsolutePath().toString().replace('\\', '/');
+                for (MiniJson.Value v : jvmArr.asArray()) {
+                    String arg = v.asString();
+                    arg = arg.replace("${library_directory}", libDirStr);
+                    arg = arg.replace("${classpath_separator}", ";");
+                    arg = arg.replace("${version_name}", baseVer);
+                    command.add(arg);
+                }
+            }
+
+            // Game arguments from Forge JSON
+            MiniJson.Value gameArr = forgeJson.get("arguments").get("game");
+            if (gameArr.isArray()) {
+                for (MiniJson.Value v : gameArr.asArray()) {
+                    forgeGameArgs.add(v.asString());
+                }
+            }
+        } else {
+            command.add("-Dminecraft.launcher.brand=CraftLauncherJava");
+            command.add("-Dminecraft.launcher.version=2.0");
+        }
+
+        // Argument file for classpath (circumvents Windows 32767 char cmd limit)
+        command.add("@" + argFile.toAbsolutePath().toString().replace('\\', '/'));
+
+        // Main class
+        command.add(mainClass);
+
+        // Forge specific game arguments (e.g. --launchTarget forgeclient --fml.*)
+        command.addAll(forgeGameArgs);
+
+        // Standard Minecraft game arguments
         command.add("--username"); command.add(config.nickname);
-        command.add("--version"); command.add(versionId);
+        command.add("--version"); command.add(targetVerId);
         command.add("--gameDir"); command.add(base.toAbsolutePath().toString());
         command.add("--assetsDir"); command.add(assetsDir.toAbsolutePath().toString());
-        command.add("--assetIndex"); command.add(versionId);
+        command.add("--assetIndex"); command.add(baseVer);
         command.add("--uuid"); command.add(offlineUuid);
         command.add("--accessToken"); command.add("0");
         command.add("--userType"); command.add("mojang");
@@ -95,7 +179,7 @@ public class Runner {
             command.add("--height"); command.add(String.valueOf(config.windowHeight));
         }
 
-        onLog.accept("[JavaRunner] Запуск процесса Minecraft...");
+        onLog.accept("[JavaRunner] Запуск процесса Minecraft (" + mainClass + ")...");
 
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.directory(base.toFile());
@@ -128,6 +212,56 @@ public class Runner {
         errThread.start();
 
         return process;
+    }
+
+    private static void addClasspathFromVersionJson(Path jsonPath, Path librariesDir, Set<String> classPaths) {
+        try {
+            MiniJson.Value root = MiniJson.parse(Files.readString(jsonPath));
+            MiniJson.Value libs = root.get("libraries");
+            if (libs.isArray()) {
+                for (MiniJson.Value lib : libs.asArray()) {
+                    MiniJson.Value art = lib.get("downloads").get("artifact");
+                    if (art.isObject()) {
+                        String relPath = art.get("path").asString();
+                        if (!relPath.isBlank()) {
+                            Path p = librariesDir.resolve(relPath.replace('/', File.separatorChar));
+                            if (Files.exists(p)) {
+                                classPaths.add(p.toAbsolutePath().toString().replace('\\', '/'));
+                            }
+                        }
+                    } else if (lib.get("name").isString()) {
+                        String relPath = Downloader.mavenToPath(lib.get("name").asString(), null);
+                        Path p = librariesDir.resolve(relPath.replace('/', File.separatorChar));
+                        if (Files.exists(p)) {
+                            classPaths.add(p.toAbsolutePath().toString().replace('\\', '/'));
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private static String findBestJava(Path base, boolean isForge, String baseVer) {
+        // 1. Check local Minecraft runtime jre-17
+        Path jre17 = base.resolve("runtime").resolve("jre-17").resolve("bin").resolve("javaw.exe");
+        if (Files.exists(jre17)) {
+            return jre17.toAbsolutePath().toString();
+        }
+        Path jre17Java = base.resolve("runtime").resolve("jre-17").resolve("bin").resolve("java.exe");
+        if (Files.exists(jre17Java)) {
+            return jre17Java.toAbsolutePath().toString();
+        }
+
+        // 2. Search installed Java versions
+        List<JavaDetector.JavaItem> javas = JavaDetector.detect();
+        if (isForge && "1.20.1".equals(baseVer)) {
+            for (JavaDetector.JavaItem j : javas) {
+                if (j.version >= 17 && j.version <= 21) {
+                    return j.path;
+                }
+            }
+        }
+        return !javas.isEmpty() ? javas.get(0).path : "java";
     }
 
     public static synchronized void killGame() {

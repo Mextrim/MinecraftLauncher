@@ -7,6 +7,8 @@ releases/
 *.zip
 
 # OS and IDE files
+logs/
+config/
 .idea/
 *.iml
 .vscode/

@@ -83,11 +83,28 @@ public class JavaDetector {
             }
         }
 
+        // 4. Local Minecraft Runtime (.minecraft/runtime)
+        String appdata = System.getenv("APPDATA");
+        if (appdata != null && !appdata.isBlank()) {
+            File mcRuntime = new File(appdata, ".minecraft\\runtime");
+            if (mcRuntime.isDirectory()) {
+                File[] subs = mcRuntime.listFiles();
+                if (subs != null) {
+                    for (File sub : subs) {
+                        if (sub.isDirectory()) {
+                            tryAdd.accept(new File(sub, "bin\\javaw.exe").getAbsolutePath(), "Minecraft Runtime (" + sub.getName() + ")");
+                            tryAdd.accept(new File(sub, "bin\\java.exe").getAbsolutePath(), "Minecraft Runtime (" + sub.getName() + ")");
+                        }
+                    }
+                }
+            }
+        }
+
         list.sort((a, b) -> Integer.compare(b.version, a.version));
         return list;
     }
 
-    private static int parseVersion(String javaPath) {
+    public static int parseVersion(String javaPath) {
         try {
             Process p = new ProcessBuilder(javaPath, "-version")
                 .redirectErrorStream(true)

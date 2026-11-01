@@ -15,6 +15,8 @@ public class Downloader {
     private static final String MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     private static final String RESOURCES_BASE_URL = "https://resources.download.minecraft.net/";
     public static final String YOLO_MODPACK_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/yolo.zip";
+    public static final String FORGE_1_20_1_RUNTIME_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/forge-1.20.1-runtime.zip";
+    public static final String JRE_17_URL = "https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jre/hotspot/normal/eclipse";
 
     private final HttpClient http = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
@@ -307,12 +309,20 @@ public class Downloader {
         }
     }
 
-    private void downloadFile(String url, Path dest) throws Exception {
+    public void downloadFile(String url, Path dest) throws Exception {
         Files.createDirectories(dest.getParent());
         Path tmp = dest.resolveSibling(dest.getFileName() + ".tmp");
 
-        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+        HttpRequest req = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+            .GET()
+            .build();
         HttpResponse<InputStream> res = http.send(req, HttpResponse.BodyHandlers.ofInputStream());
+
+        if (res.statusCode() >= 400) {
+            throw new IOException("HTTP " + res.statusCode() + " при загрузке: " + url);
+        }
 
         try (InputStream in = res.body(); OutputStream out = Files.newOutputStream(tmp)) {
             in.transferTo(out);
@@ -360,7 +370,7 @@ public class Downloader {
         return allowed;
     }
 
-    private static String mavenToPath(String mavenName, String classifier) {
+    public static String mavenToPath(String mavenName, String classifier) {
         String[] parts = mavenName.split(":");
         if (parts.length < 3) return mavenName.replace(':', '/') + ".jar";
 
@@ -441,5 +451,105 @@ public class Downloader {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static boolean isForge1201Installed(String gameDir) {
+        Path json = Paths.get(gameDir, "versions", "1.20.1-forge-47.3.0", "1.20.1-forge-47.3.0.json");
+        return Files.exists(json);
+    }
+
+    public static boolean isJava17Installed(String gameDir) {
+        Path p = Paths.get(gameDir, "runtime", "jre-17", "bin", "javaw.exe");
+        if (Files.exists(p)) return true;
+        Path p2 = Paths.get(gameDir, "runtime", "jre-17", "bin", "java.exe");
+        if (Files.exists(p2)) return true;
+        for (JavaDetector.JavaItem j : JavaDetector.detect()) {
+            if (j.version >= 17 && j.version <= 21) return true;
+        }
+        return false;
+    }
+
+    public void downloadAndInstallForge1201(String gameDir, java.util.function.Consumer<ProgressReport> onProgress) throws Exception {
+        onProgress.accept(new ProgressReport("Загрузка среды Minecraft Forge 1.20.1 с GitHub...", 10.0));
+        Path zipTmp = Paths.get(gameDir, "forge_temp.zip");
+        downloadFile(FORGE_1_20_1_RUNTIME_URL, zipTmp);
+
+        onProgress.accept(new ProgressReport("Распаковка Forge 1.20.1 и библиотек...", 60.0));
+        unzip(zipTmp, Paths.get(gameDir));
+        Files.deleteIfExists(zipTmp);
+        onProgress.accept(new ProgressReport("Minecraft Forge 1.20.1 успешно установлен!", 100.0));
+    }
+
+    public void downloadAndInstallJava17(String gameDir, java.util.function.Consumer<ProgressReport> onProgress) throws Exception {
+        onProgress.accept(new ProgressReport("Загрузка Java 17 (Adoptium JRE) для модов...", 10.0));
+        Path runtimeDir = Paths.get(gameDir, "runtime");
+        Path destDir = runtimeDir.resolve("jre-17");
+        if (Files.exists(destDir.resolve("bin").resolve("javaw.exe")) || Files.exists(destDir.resolve("bin").resolve("java.exe"))) {
+            return;
+        }
+        Files.createDirectories(runtimeDir);
+        Path tmpZip = Paths.get(gameDir, "jre17_temp.zip");
+        downloadFile(JRE_17_URL, tmpZip);
+
+        onProgress.accept(new ProgressReport("Распаковка Java 17...", 70.0));
+        String rootDir = "";
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(tmpZip))) {
+            ZipEntry ze = zis.getNextEntry();
+            if (ze != null) {
+                String name = ze.getName().replace('\\', '/');
+                if (name.contains("/")) {
+                    rootDir = name.substring(0, name.indexOf('/'));
+                }
+            }
+        }
+        unzip(tmpZip, runtimeDir);
+        Files.deleteIfExists(tmpZip);
+
+        if (!rootDir.isBlank()) {
+            Path extracted = runtimeDir.resolve(rootDir);
+            if (Files.exists(extracted) && !extracted.equals(destDir)) {
+                if (Files.exists(destDir)) deleteDirectory(destDir);
+                Files.move(extracted, destDir, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+        onProgress.accept(new ProgressReport("Java 17 успешно установлена!", 100.0));
+    }
+
+    public static void unzip(Path zipFile, Path targetDir) throws Exception {
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFile))) {
+            ZipEntry entry;
+            byte[] buf = new byte[32768];
+            while ((entry = zis.getNextEntry()) != null) {
+                Path dest = targetDir.resolve(entry.getName());
+                if (entry.isDirectory()) {
+                    Files.createDirectories(dest);
+                } else {
+                    Files.createDirectories(dest.getParent());
+                    try (OutputStream fos = Files.newOutputStream(dest)) {
+                        int len;
+                        while ((len = zis.read(buf)) > 0) {
+                            fos.write(buf, 0, len);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public static void deleteDirectory(Path dir) {
+        try {
+            Files.walkFileTree(dir, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, java.nio.file.attribute.BasicFileAttributes attrs) throws IOException {
+                    Files.deleteIfExists(file);
+                    return FileVisitResult.CONTINUE;
+                }
+                @Override
+                public FileVisitResult postVisitDirectory(Path d, IOException exc) throws IOException {
+                    Files.deleteIfExists(d);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (Exception ignored) {}
     }
 }

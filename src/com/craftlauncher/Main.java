@@ -1495,6 +1495,30 @@ public class Main extends JFrame {
 
         new Thread(() -> {
             try {
+                boolean isForge = sel.id.contains("Forge") || sel.id.contains("YOLO");
+
+                // If Java 17 is missing for Forge 1.20.1, download Adoptium JRE 17
+                if (isForge && sel.id.contains("1.20.1") && !Downloader.isJava17Installed(config.gameDir)) {
+                    downloader.downloadAndInstallJava17(config.gameDir, report -> {
+                        SwingUtilities.invokeLater(() -> {
+                            setStatus(report.status, Icons.download(14, currentTheme.accentPrimary));
+                            progressBar.setValue((int) report.percent);
+                            lblPercent.setText((int) report.percent + "%");
+                        });
+                    });
+                }
+
+                // If Forge 1.20.1 runtime is not installed, download from GitHub release
+                if (isForge && sel.id.contains("1.20.1") && !Downloader.isForge1201Installed(config.gameDir)) {
+                    downloader.downloadAndInstallForge1201(config.gameDir, report -> {
+                        SwingUtilities.invokeLater(() -> {
+                            setStatus(report.status, Icons.download(14, currentTheme.accentPrimary));
+                            progressBar.setValue((int) report.percent);
+                            lblPercent.setText((int) report.percent + "%");
+                        });
+                    });
+                }
+
                 // If YOLO modpack is selected and not installed, download from GitHub first
                 if (sel.id.contains("YOLO") && !Downloader.isYoloModpackInstalled(config.gameDir)) {
                     downloader.downloadAndInstallYoloModpack(config.gameDir, report -> {
