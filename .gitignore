@@ -1,22 +1,15 @@
-# Dependencies
-node_modules/
+# Build outputs
+build/
+dist/
 
-# Rust build target
-rust-core/target/
-
-# Packaged distributions (uploaded to GitHub Releases)
-electron-launcher/dist/
-java-launcher/dist/
-java-launcher/build/
-
-# Packaged release archives
+# Release archives
 releases/
 *.zip
 
-# Temporary scripts
-upload_to_github.py
-
-# Windows
+# OS and IDE files
+.idea/
+*.iml
+.vscode/
 Thumbs.db
 Desktop.ini
 .DS_Store

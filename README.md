@@ -1,45 +1,72 @@
-# ⛏️ Minecraft Launchers (Electron + Rust & Java 25)
+# ⛏️ Minecraft Launcher (EXE + Java)
 
-В проекте оставлены только две целевые реализации лаунчера для Minecraft:
+Современный, быстрый и красивый лаунчер для Minecraft, написанный на **Java** и запускаемый через нативный Windows **`.exe`**.
 
----
-
-## ⚡ 1. Electron + Rust Launcher
-
-Современный клиент на веб-технологиях (**Electron**) с высокоскоростным нативным бэкендом на **Rust** (`rust-core`).
-
-### 🚀 Запуск:
-👉 **[`electron-launcher/dist/MinecraftLauncher-win32-x64/MinecraftLauncher.exe`](file:///g:/work/Launcher/electron-launcher/dist/MinecraftLauncher-win32-x64/MinecraftLauncher.exe)**
-
-### 🌟 Возможности:
-- **Готовые сборки и модлоадеры**:
-  - ✨ **OptiFine** (Шейдеры, зум на C, динамическое освещение, +50-80% FPS)
-  - 🧵 **Fabric** (Сверхбыстрый легкий движок, поддержка Sodium и Iris)
-  - 🔨 **Forge** (Классический моддинг, поддержка Create, Twilight Forest)
-  - ⚔️ **Forge + OptiFine** (Гибридная сборка: моды Forge + шейдеры OptiFine)
-  - ⚡ **Ванилла** (Чистые официальные релизы от Mojang)
-- **5 цветовых тем оформления**:
-  - 🌿 Изумруд (Emerald)
-  - 💎 Алмаз (Diamond)
-  - 🔮 Аметист (Amethyst)
-  - ⚔️ Незерит (Netherite)
-  - 🔴 Редстоун (Redstone)
-- **Быстрый доступ к папкам**: кнопки прямого открытия `mods/`, `shaderpacks/` и `.minecraft`.
-- **Нативный Rust Core**: многопоточная загрузка ассетов и запуск процесса Minecraft.
+В проекте убран весь лишний хлам — осталась только чистая, стабильная и производительная связка **EXE + Java**.
 
 ---
 
-## ☕ 2. Java 25 Native Launcher (.EXE + .JAR)
+## 🚀 Способы запуска
 
-Нативный лаунчер на **Java 25**, скомпилированный в автономный Windows-файл **`.exe`** через `jpackage` со встроенным оптимизированным рантаймом.
+### 1. Нативный Windows EXE (Быстрый старт)
+Дважды кликните по файлу:
+👉 **[`MinecraftLauncher.exe`](file:///g:/work/Launcher/MinecraftLauncher.exe)**  
+*(или используйте [`run.bat`](file:///g:/work/Launcher/run.bat))*
 
-### 🚀 Запуск:
-👉 **[`java-launcher/dist/MinecraftLauncher/MinecraftLauncher.exe`](file:///g:/work/Launcher/java-launcher/dist/MinecraftLauncher/MinecraftLauncher.exe)**  
-*(Также доступен универсальный JAR: [`java-launcher/Launcher.jar`](file:///g:/work/Launcher/java-launcher/Launcher.jar))*
+- Запускается мгновенно без раздражающего черного окна командной строки.
+- Автоматически находит установленную Java (Java 17 / 21 / 25, Adoptium Temurin, Microsoft OpenJDK, Oracle).
+- Если Java отсутствует, предлагает скачать её в один клик.
 
-### 🌟 Возможности:
-- **Полная автономность**: для запуска `.exe` не требуется предварительно устанавливать Java — runtime уже встроен.
-- **Поддержка сборок OptiFine, Fabric, Forge и Forge + OptiFine**.
-- **Кастомный графический интерфейс Java2D/Swing** со сглаживанием, темной темой и стилизацией.
-- **Офлайн-авторизация** с генерацией UUID игрока (RFC 4122 v3).
-- **Слайдер выделения памяти RAM** (1-16 ГБ) и встроенная консоль логов.
+### 2. Универсальный JAR
+👉 **[`Launcher.jar`](file:///g:/work/Launcher/Launcher.jar)**  
+Запуск в терминале или кликом:
+```cmd
+java -jar Launcher.jar
+```
+
+### 3. Автономный Standalone дистрибутив (Без установки Java)
+👉 **[`dist/MinecraftLauncher/MinecraftLauncher.exe`](file:///g:/work/Launcher/dist/MinecraftLauncher/MinecraftLauncher.exe)**  
+Собран через `jpackage` с собственной встроенной средой Java Runtime — работает на любом ПК из коробки.
+
+---
+
+## ✨ Возможности и особенности
+
+- 🎮 **Готовые сборки и модлоадеры**:
+  - ✨ **OptiFine HD** — двукратный прирост FPS, шейдеры BSL / Complementary, зум на C.
+  - 🧵 **Fabric** — поддержка современных модов (Sodium, Iris, Lithium).
+  - 🔨 **Forge** — классические глобальные модификации (Create, Twilight Forest).
+  - ⚔️ **Forge + OptiFine** — гибридная сборка для тяжелых сборок с красивой графикой.
+  - ⚡ **Официальные релизы и снапшоты** с прямой загрузкой из Mojang CDN.
+
+- 🎨 **5 визуальных тем оформления**:
+  - 🌿 **Изумруд** (Emerald)
+  - 💎 **Алмаз** (Diamond)
+  - 🔮 **Аметист** (Amethyst)
+  - ⚔️ **Незерит** (Netherite)
+  - 🔴 **Редстоун** (Redstone)
+
+- 👤 **Пиксель-арт аватары и профили**:
+  - Векторные пиксельные аватары: Стив, Алекс, Крипер, Эндермен.
+  - Офлайн-авторизация с генерацией персонального UUID (RFC 4122 v3).
+
+- ⚙️ **Полный контроль настроек**:
+  - Слайдер выделения памяти RAM (от 1 до 16 ГБ).
+  - Автоматическое определение установленных сред Java и выбор пути.
+  - Полноэкранный режим и настройка разрешения окна игры.
+  - Встроенная консоль с выводом логов Minecraft в реальном времени и кнопкой принудительной остановки.
+
+- 📂 **Быстрый доступ в 1 клик**:
+  - Кнопки быстрого открытия папок `mods/` (моды), `shaderpacks/` (шейдеры), `resourcepacks/` и корневой `.minecraft`.
+
+---
+
+## 🛠️ Сборка из исходников
+
+Для пересборки проекта в 1 клик запустите:
+👉 **[`build.bat`](file:///g:/work/Launcher/build.bat)**
+
+Скрипт автоматически:
+1. Компилирует классы Java (`src/com/craftlauncher/*.java`).
+2. Упаковывает `Launcher.jar`.
+3. Собирает нативный `MinecraftLauncher.exe` со встроенной иконкой.

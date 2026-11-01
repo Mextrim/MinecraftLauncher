@@ -77,6 +77,8 @@ public class Main extends JFrame {
     }
 
     private void initWindow() {
+        setTitle("Minecraft Launcher");
+        setIconImage(createLauncherIcon());
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -95,6 +97,37 @@ public class Main extends JFrame {
         };
         rootPanel.setOpaque(false);
         setContentPane(rootPanel);
+    }
+
+    private Image createLauncherIcon() {
+        int s = 64;
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(s, s, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = img.createGraphics();
+        int p = s / 8;
+        g.setColor(new Color(134, 96, 67));
+        g.fillRect(0, 0, s, s);
+        g.setColor(new Color(87, 61, 38));
+        g.fillRect(1 * p, 4 * p, p, p);
+        g.fillRect(4 * p, 5 * p, p, p);
+        g.fillRect(2 * p, 6 * p, p, p);
+        g.fillRect(6 * p, 4 * p, p, p);
+        g.fillRect(5 * p, 7 * p, p, p);
+        g.setColor(new Color(91, 140, 50));
+        g.fillRect(0, 0, s, 2 * p);
+        g.fillRect(1 * p, 2 * p, p, p);
+        g.fillRect(1 * p, 3 * p, p, p);
+        g.fillRect(3 * p, 2 * p, p, p);
+        g.fillRect(4 * p, 2 * p, p, p);
+        g.fillRect(6 * p, 2 * p, p, p);
+        g.fillRect(6 * p, 3 * p, p, p);
+        g.setColor(new Color(115, 173, 56));
+        g.fillRect(0, 0, s, 1 * p);
+        g.fillRect(2 * p, 1 * p, 2 * p, p);
+        g.fillRect(5 * p, 1 * p, 2 * p, p);
+        g.setColor(new Color(255, 255, 255, 120));
+        g.drawRect(0, 0, s - 1, s - 1);
+        g.dispose();
+        return img;
     }
 
     private void initComponents() {
