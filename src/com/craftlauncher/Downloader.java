@@ -14,6 +14,7 @@ public class Downloader {
 
     private static final String MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     private static final String RESOURCES_BASE_URL = "https://resources.download.minecraft.net/";
+    public static final String YOLO_MODPACK_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/yolo.zip";
 
     private final HttpClient http = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
@@ -64,6 +65,7 @@ public class Downloader {
 
     public static List<VersionEntry> getDefaultVersions() {
         List<VersionEntry> list = new ArrayList<>();
+        list.add(new VersionEntry("1.20.1 (Forge + YOLO Modpack)", "release", "", "YOLO MODPACK", "1.20.1"));
         list.add(new VersionEntry("1.21.4 (OptiFine)", "release", "", "OPTIFINE HD", "1.21.4"));
         list.add(new VersionEntry("1.21.4 (Fabric)", "release", "", "FABRIC", "1.21.4"));
         list.add(new VersionEntry("1.21.4 (Forge)", "release", "", "FORGE", "1.21.4"));
@@ -71,6 +73,7 @@ public class Downloader {
         list.add(new VersionEntry("1.21.4", "release", "", "РЕЛИЗ", "1.21.4"));
         list.add(new VersionEntry("1.20.4 (OptiFine)", "release", "", "OPTIFINE HD", "1.20.4"));
         list.add(new VersionEntry("1.20.4", "release", "", "РЕЛИЗ", "1.20.4"));
+        list.add(new VersionEntry("1.20.1 (Forge)", "release", "", "FORGE", "1.20.1"));
         list.add(new VersionEntry("1.16.5 (OptiFine)", "release", "", "OPTIFINE HD", "1.16.5"));
         list.add(new VersionEntry("1.16.5", "release", "", "РЕЛИЗ", "1.16.5"));
         list.add(new VersionEntry("1.12.2 (OptiFine)", "release", "", "OPTIFINE HD", "1.12.2"));
@@ -93,9 +96,9 @@ public class Downloader {
             result.versions.add(new VersionEntry(id, type, url));
         }
 
-        // Inject modded builds: OptiFine, Fabric, Forge, Forge + OptiFine
+        // Inject modded builds: OptiFine, Fabric, Forge, Forge + OptiFine, YOLO Modpack
         List<VersionEntry> modded = new ArrayList<>();
-        String[] popular = {"1.21.4", "1.20.4", "1.16.5", "1.12.2"};
+        String[] popular = {"1.20.1", "1.21.4", "1.20.4", "1.16.5", "1.12.2"};
         for (String baseVer : popular) {
             String url = "";
             for (VersionEntry v : result.versions) {
@@ -103,6 +106,9 @@ public class Downloader {
                     url = v.url;
                     break;
                 }
+            }
+            if ("1.20.1".equals(baseVer)) {
+                modded.add(new VersionEntry("1.20.1 (Forge + YOLO Modpack)", "release", url, "YOLO MODPACK", "1.20.1"));
             }
             modded.add(new VersionEntry(baseVer + " (OptiFine)", "release", url, "OPTIFINE HD", baseVer));
             modded.add(new VersionEntry(baseVer + " (Fabric)", "release", url, "FABRIC", baseVer));
@@ -364,5 +370,76 @@ public class Downloader {
         String classifierPart = classifier != null && !classifier.isBlank() ? "-" + classifier : (parts.length > 3 ? "-" + parts[3] : "");
 
         return group + "/" + artifact + "/" + version + "/" + artifact + "-" + version + classifierPart + ".jar";
+    }
+
+    public void downloadAndInstallYoloModpack(String gameDir, java.util.function.Consumer<ProgressReport> onProgress) throws Exception {
+        onProgress.accept(new ProgressReport("Подключение к GitHub CDN для загрузки модов YOLO...", 2.0));
+        Path modsDir = Paths.get(gameDir, "mods");
+        Files.createDirectories(modsDir);
+
+        Path zipTmp = Paths.get(gameDir, "yolo_temp.zip");
+
+        HttpRequest req = HttpRequest.newBuilder().uri(URI.create(YOLO_MODPACK_URL)).GET().build();
+        HttpResponse<InputStream> res = http.send(req, HttpResponse.BodyHandlers.ofInputStream());
+
+        long contentLength = res.headers().firstValueAsLong("content-length").orElse(135933393L);
+
+        try (InputStream in = res.body(); OutputStream out = Files.newOutputStream(zipTmp)) {
+            byte[] buf = new byte[65536];
+            long totalRead = 0;
+            int n;
+            long lastNotifyTime = 0;
+            while ((n = in.read(buf)) != -1) {
+                out.write(buf, 0, n);
+                totalRead += n;
+                long now = System.currentTimeMillis();
+                if (now - lastNotifyTime > 150 || totalRead == contentLength) {
+                    lastNotifyTime = now;
+                    double pct = Math.min(90.0, 5.0 + ((double) totalRead / Math.max(1, contentLength) * 85.0));
+                    onProgress.accept(new ProgressReport(
+                        String.format(java.util.Locale.US, "Загрузка модов YOLO с GitHub: %.1f / %.1f МБ", totalRead / (1024.0 * 1024.0), contentLength / (1024.0 * 1024.0)),
+                        pct
+                    ));
+                }
+            }
+        }
+
+        onProgress.accept(new ProgressReport("Распаковка 53 модов в папку mods...", 92.0));
+
+        int count = 0;
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipTmp))) {
+            ZipEntry entry;
+            byte[] buf = new byte[32768];
+            while ((entry = zis.getNextEntry()) != null) {
+                if (entry.isDirectory()) continue;
+                String name = entry.getName();
+                if (name.contains("/")) name = name.substring(name.lastIndexOf('/') + 1);
+                if (name.contains("\\")) name = name.substring(name.lastIndexOf('\\') + 1);
+                if (!name.toLowerCase().endsWith(".jar")) continue;
+
+                Path target = modsDir.resolve(name);
+                try (OutputStream fos = Files.newOutputStream(target)) {
+                    int len;
+                    while ((len = zis.read(buf)) > 0) {
+                        fos.write(buf, 0, len);
+                    }
+                }
+                count++;
+            }
+        } finally {
+            try { Files.deleteIfExists(zipTmp); } catch (Exception ignored) {}
+        }
+
+        onProgress.accept(new ProgressReport("Успешно установлено " + count + " модов сборки YOLO!", 100.0));
+    }
+
+    public static boolean isYoloModpackInstalled(String gameDir) {
+        Path modsDir = Paths.get(gameDir, "mods");
+        if (!Files.exists(modsDir)) return false;
+        try (var stream = Files.list(modsDir)) {
+            return stream.anyMatch(p -> p.getFileName().toString().toLowerCase().contains("tacz"));
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

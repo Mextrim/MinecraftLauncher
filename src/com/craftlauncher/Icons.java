@@ -103,6 +103,8 @@ public class Icons {
     public static final String MINUS = "\uf068";
     public static final String SQUARE = "\uf0c8";
     public static final String XMARK = "\uf00d";
+    public static final String FIRE = "\uf06d";
+    public static final String DOWNLOAD = "\uf019";
 
     // Nav tabs
     public static Icon tabPlay(float size, Color color) { return fa(GAMEPAD, size, color); }
@@ -130,6 +132,8 @@ public class Icons {
     public static Icon forgeOptifine(float size, Color color) { return fa(SHIELD, size, color); }
     public static Icon vanilla(float size, Color color) { return fa(CUBE, size, color); }
     public static Icon star(float size, Color color) { return fa(STAR, size, color); }
+    public static Icon fire(float size, Color color) { return fa(FIRE, size, color); }
+    public static Icon download(float size, Color color) { return fa(DOWNLOAD, size, color); }
     public static Icon latest(float size, Color color) { return fa(BOLT, size, color); }
     public static Icon gem(float size, Color color) { return fa(GEM, size, color); }
     public static Icon history(float size, Color color) { return fa(HISTORY, size, color); }

@@ -646,6 +646,7 @@ public class Main extends JFrame {
         JPanel loaderChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         loaderChips.setOpaque(false);
         loaderChips.add(createChipButton("Все", Icons.all(12, new Color(0x94, 0xA3, 0xB8)), e -> filterVersionsByLoader("all")));
+        loaderChips.add(createChipButton("YOLO", Icons.fire(12, new Color(0xF9, 0x73, 0x16)), e -> filterVersionsByLoader("yolo")));
         loaderChips.add(createChipButton("OptiFine", Icons.optifine(12, new Color(0x38, 0xBD, 0xF8)), e -> filterVersionsByLoader("optifine")));
         loaderChips.add(createChipButton("Fabric", Icons.fabric(12, new Color(0xF5, 0x9E, 0x0B)), e -> filterVersionsByLoader("fabric")));
         loaderChips.add(createChipButton("Forge", Icons.forge(12, new Color(0xEF, 0x44, 0x44)), e -> filterVersionsByLoader("forge")));
@@ -683,6 +684,7 @@ public class Main extends JFrame {
 
         JPanel verChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         verChips.setOpaque(false);
+        verChips.add(createChipButton("YOLO 1.20.1", Icons.fire(11, new Color(0xF9, 0x73, 0x16)), e -> selectQuickVersion("1.20.1 (Forge + YOLO")));
         verChips.add(createChipButton("1.21.4", Icons.star(11, new Color(0xFA, 0xCC, 0x15)), e -> selectQuickVersion("1.21.4")));
         verChips.add(createChipButton("1.20.4", Icons.check(11, new Color(0x38, 0xBD, 0xF8)), e -> selectQuickVersion("1.20.4")));
         verChips.add(createChipButton("1.16.5", Icons.history(11, new Color(0xA8, 0x55, 0xF7)), e -> selectQuickVersion("1.16.5")));
@@ -704,6 +706,33 @@ public class Main extends JFrame {
         folderChips.add(createChipButton("Шейдеры", Icons.shader(12, new Color(0xE8, 0x79, 0xF9)), e -> openSubFolder("shaderpacks")));
         folderChips.add(createChipButton("Ресурспаки", Icons.palette(12, new Color(0x38, 0xBD, 0xF8)), e -> openSubFolder("resourcepacks")));
         cardVersion.add(folderChips);
+        cardVersion.add(Box.createVerticalStrut(6));
+
+        // Dedicated YOLO Modpack Action Row
+        JPanel yoloRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        yoloRow.setOpaque(false);
+        JButton btnDlYolo = new JButton("Скачать сборку модов YOLO с GitHub (53 мода)", Icons.download(12, Color.WHITE)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setPaint(new GradientPaint(0, 0, new Color(0xEA, 0x58, 0x0C), getWidth(), getHeight(), new Color(0xC2, 0x41, 0x0C)));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnDlYolo.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        btnDlYolo.setForeground(Color.WHITE);
+        btnDlYolo.setIconTextGap(8);
+        btnDlYolo.setFocusPainted(false);
+        btnDlYolo.setBorderPainted(false);
+        btnDlYolo.setContentAreaFilled(false);
+        btnDlYolo.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnDlYolo.setBorder(new EmptyBorder(6, 12, 6, 12));
+        btnDlYolo.addActionListener(e -> downloadYoloModpackAction());
+        yoloRow.add(btnDlYolo);
+        cardVersion.add(yoloRow);
         cardVersion.add(Box.createVerticalStrut(8));
 
         // Description Box
@@ -930,7 +959,9 @@ public class Main extends JFrame {
 
             if (value instanceof Downloader.VersionEntry entry) {
                 Icon icon;
-                if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
+                if (entry.badge.contains("YOLO")) {
+                    icon = Icons.fire(14, new Color(0xF9, 0x73, 0x16));
+                } else if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
                     icon = Icons.optifine(14, new Color(0x38, 0xBD, 0xF8));
                 } else if (entry.badge.contains("FABRIC")) {
                     icon = Icons.fabric(14, new Color(0xF5, 0x9E, 0x0B));
@@ -951,7 +982,7 @@ public class Main extends JFrame {
 
                 JLabel badge = new JLabel(entry.badge);
                 badge.setFont(new Font("Segoe UI", Font.BOLD, 10));
-                badge.setForeground(currentTheme.accentPrimary);
+                badge.setForeground(entry.badge.contains("YOLO") ? new Color(0xF9, 0x73, 0x16) : currentTheme.accentPrimary);
 
                 p.add(title, BorderLayout.WEST);
                 p.add(badge, BorderLayout.EAST);
@@ -1290,15 +1321,17 @@ public class Main extends JFrame {
 
             if ("all".equalsIgnoreCase(loader)) {
                 filtered.add(v);
+            } else if ("yolo".equalsIgnoreCase(loader) && v.badge.contains("YOLO")) {
+                filtered.add(v);
             } else if ("optifine".equalsIgnoreCase(loader) && v.badge.contains("OPTIFINE") && !v.badge.contains("FORGE")) {
                 filtered.add(v);
             } else if ("fabric".equalsIgnoreCase(loader) && v.badge.contains("FABRIC")) {
                 filtered.add(v);
-            } else if ("forge".equalsIgnoreCase(loader) && v.badge.contains("FORGE") && !v.badge.contains("OPTIFINE")) {
+            } else if ("forge".equalsIgnoreCase(loader) && (v.badge.contains("FORGE") || v.badge.contains("YOLO")) && !v.badge.contains("OPTIFINE")) {
                 filtered.add(v);
             } else if ("forge_optifine".equalsIgnoreCase(loader) && v.badge.contains("FORGE") && v.badge.contains("OPTIFINE")) {
                 filtered.add(v);
-            } else if ("vanilla".equalsIgnoreCase(loader) && !v.badge.contains("OPTIFINE") && !v.badge.contains("FABRIC") && !v.badge.contains("FORGE")) {
+            } else if ("vanilla".equalsIgnoreCase(loader) && !v.badge.contains("OPTIFINE") && !v.badge.contains("FABRIC") && !v.badge.contains("FORGE") && !v.badge.contains("YOLO")) {
                 filtered.add(v);
             }
         }
@@ -1330,7 +1363,9 @@ public class Main extends JFrame {
     private void updateVersionDescription(Downloader.VersionEntry entry) {
         if (lblModDesc == null || entry == null) return;
 
-        if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
+        if (entry.badge.contains("YOLO")) {
+            lblModDesc.setText("<html><span style='color:#F97316;'><b>[Сборка YOLO 1.20.1 Forge]</b></span> <b>53 мода:</b> Оружие TACZ, хоррор-двеллеры (The Man from the Fog, Cave Dweller, Knocker), оптимизация Embeddium+Oculus (шейдеры), Plasmo Voice и данжи YUNG's.</html>");
+        } else if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
             lblModDesc.setText("<html><span style='color:#38BDF8;'><b>[OptiFine HD]</b></span> <b>Оптимизация и графика:</b> Двукратный прирост FPS, поддержка шейдеров BSL и зум на клавишу C.</html>");
         } else if (entry.badge.contains("FABRIC")) {
             lblModDesc.setText("<html><span style='color:#F59E0B;'><b>[Fabric]</b></span> <b>Модлоадер Fabric:</b> Легковесный скоростной движок модов. Поддержка Sodium, Iris, Lithium.</html>");
@@ -1414,6 +1449,42 @@ public class Main extends JFrame {
         }
     }
 
+    private void downloadYoloModpackAction() {
+        btnPlay.setEnabled(false);
+        progressBar.setValue(0);
+        setStatus("Подключение к GitHub CDN для загрузки модов YOLO...", Icons.refresh(14, currentTheme.accentPrimary));
+
+        new Thread(() -> {
+            try {
+                downloader.downloadAndInstallYoloModpack(config.gameDir, report -> {
+                    SwingUtilities.invokeLater(() -> {
+                        setStatus(report.status, Icons.download(14, new Color(0xF9, 0x73, 0x16)));
+                        progressBar.setValue((int) report.percent);
+                        lblPercent.setText((int) report.percent + "%");
+                    });
+                });
+                SwingUtilities.invokeLater(() -> {
+                    btnPlay.setEnabled(true);
+                    setStatus("Сборка YOLO успешно скачана с GitHub и установлена!", Icons.checkCircle(14, new Color(0x4A, 0xDE, 0x80)));
+                    progressBar.setValue(100);
+                    lblPercent.setText("100%");
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Сборка модов YOLO успешно загружена с GitHub!\nВсе 53 мода распакованы в папку mods.\n\nТеперь выберите версию 1.20.1 (Forge + YOLO Modpack) и нажмите ИГРАТЬ!",
+                        "Сборка YOLO установлена",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                });
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> {
+                    btnPlay.setEnabled(true);
+                    setStatus("Ошибка загрузки сборки: " + ex.getMessage(), Icons.winClose(14, new Color(0xF4, 0x3F, 0x5E)));
+                    JOptionPane.showMessageDialog(this, "Не удалось загрузить моды с GitHub:\n" + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                });
+            }
+        }).start();
+    }
+
     private void launchGame() {
         Downloader.VersionEntry sel = (Downloader.VersionEntry) cbVersions.getSelectedItem();
         if (sel == null) return;
@@ -1424,6 +1495,17 @@ public class Main extends JFrame {
 
         new Thread(() -> {
             try {
+                // If YOLO modpack is selected and not installed, download from GitHub first
+                if (sel.id.contains("YOLO") && !Downloader.isYoloModpackInstalled(config.gameDir)) {
+                    downloader.downloadAndInstallYoloModpack(config.gameDir, report -> {
+                        SwingUtilities.invokeLater(() -> {
+                            setStatus(report.status, Icons.download(14, new Color(0xF9, 0x73, 0x16)));
+                            progressBar.setValue((int) report.percent);
+                            lblPercent.setText((int) report.percent + "%");
+                        });
+                    });
+                }
+
                 downloader.downloadVersion(sel.id, sel.url, config.gameDir, report -> {
                     SwingUtilities.invokeLater(() -> {
                         setStatus(report.status, Icons.refresh(14, currentTheme.accentPrimary));
