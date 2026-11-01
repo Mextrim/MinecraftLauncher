@@ -64,10 +64,22 @@ public class Main extends JFrame {
     public Main() {
         this.config = Config.load();
         this.currentTheme = UITheme.get(config.theme);
+        this.allVersions = Downloader.getDefaultVersions();
 
         initWindow();
         initComponents();
         applyTheme(this.currentTheme);
+
+        filterVersionsByLoader("all");
+        if (!config.selectedVersion.isBlank()) {
+            for (int i = 0; i < cbVersions.getItemCount(); i++) {
+                if (cbVersions.getItemAt(i).id.equalsIgnoreCase(config.selectedVersion)) {
+                    cbVersions.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+        updateSummaryLine();
 
         setSize(1040, 700);
         setMinimumSize(new Dimension(920, 620));
@@ -228,7 +240,7 @@ public class Main extends JFrame {
         rightBar.setOpaque(false);
 
         // Quick folder button
-        JButton btnOpenGameDir = createSmallButton("📁 .minecraft", e -> openDirectory(config.gameDir));
+        JButton btnOpenGameDir = createSmallButton(".minecraft", Icons.folder(14, currentTheme.accentPrimary), e -> openDirectory(config.gameDir));
         rightBar.add(btnOpenGameDir);
 
         // Theme Switcher dots panel
@@ -364,8 +376,8 @@ public class Main extends JFrame {
         return btn;
     }
 
-    private JButton createSmallButton(String text, ActionListener l) {
-        JButton btn = new JButton(text) {
+    private JButton createSmallButton(String text, Icon icon, ActionListener l) {
+        JButton btn = new JButton(text, icon) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -385,8 +397,15 @@ public class Main extends JFrame {
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(5, 9, 5, 9));
+        if (icon != null) {
+            btn.setIconTextGap(6);
+        }
         btn.addActionListener(l);
         return btn;
+    }
+
+    private JButton createSmallButton(String text, ActionListener l) {
+        return createSmallButton(text, null, l);
     }
 
     // ================= VIEW: PLAY =================
@@ -438,7 +457,7 @@ public class Main extends JFrame {
         heroRight.setLayout(new BoxLayout(heroRight, BoxLayout.Y_AXIS));
         heroRight.setOpaque(false);
 
-        statusBadge = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 4)) {
+        statusBadge = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -449,8 +468,7 @@ public class Main extends JFrame {
             }
         };
         statusBadge.setOpaque(false);
-        JLabel dot = new JLabel("●");
-        dot.setForeground(new Color(0x4A, 0xDE, 0x80));
+        JLabel dot = new JLabel(Icons.dot(10, new Color(0x4A, 0xDE, 0x80)));
         JLabel statusText = new JLabel("ИГРА ЗАПУЩЕНА");
         statusText.setFont(new Font("Segoe UI", Font.BOLD, 11));
         statusText.setForeground(new Color(0x4A, 0xDE, 0x80));
@@ -472,9 +490,8 @@ public class Main extends JFrame {
             }
         };
         mojangPill.setOpaque(false);
-        JLabel mDot = new JLabel("●");
-        mDot.setForeground(currentTheme.accentPrimary);
-        JLabel mText = new JLabel("Mojang API: Онлайн");
+        JLabel mDot = new JLabel(Icons.dot(10, currentTheme.accentPrimary));
+        JLabel mText = new JLabel("Mojang API • Онлайн");
         mText.setFont(new Font("Segoe UI", Font.BOLD, 11));
         mText.setForeground(new Color(0xCB, 0xD5, 0xE1));
         mojangPill.add(mDot);
@@ -580,8 +597,7 @@ public class Main extends JFrame {
         };
         offlinePill.setOpaque(false);
         offlinePill.setBorder(new EmptyBorder(10, 12, 10, 12));
-        JLabel lockIcon = new JLabel("🔒");
-        lockIcon.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        JLabel lockIcon = new JLabel(Icons.lock(15, currentTheme.accentPrimary));
         JLabel hint = new JLabel("<html>Офлайн-режим. Миры, инвентарь и скины привязываются локально к этому нику.</html>");
         hint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         hint.setForeground(new Color(0x94, 0xA3, 0xB8));
@@ -610,7 +626,7 @@ public class Main extends JFrame {
         vTitles.add(vTitle);
         vHeadRow.add(vTitles, BorderLayout.WEST);
 
-        btnRefresh = createSmallButton("🔄 Обновить", e -> new Thread(this::loadInitialData).start());
+        btnRefresh = createSmallButton("Обновить", Icons.refresh(12, currentTheme.accentPrimary), e -> new Thread(this::loadInitialData).start());
         vHeadRow.add(btnRefresh, BorderLayout.EAST);
         cardVersion.add(vHeadRow);
         cardVersion.add(Box.createVerticalStrut(10));
@@ -625,11 +641,11 @@ public class Main extends JFrame {
         JPanel loaderChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         loaderChips.setOpaque(false);
         loaderChips.add(createChipButton("Все", e -> filterVersionsByLoader("all")));
-        loaderChips.add(createChipButton("✨ OptiFine", e -> filterVersionsByLoader("optifine")));
-        loaderChips.add(createChipButton("🧵 Fabric", e -> filterVersionsByLoader("fabric")));
-        loaderChips.add(createChipButton("🔨 Forge", e -> filterVersionsByLoader("forge")));
-        loaderChips.add(createChipButton("⚔️ Forge+OptiFine", e -> filterVersionsByLoader("forge_optifine")));
-        loaderChips.add(createChipButton("Ванилла", e -> filterVersionsByLoader("vanilla")));
+        loaderChips.add(createChipButton("OptiFine", Icons.optifine(12, new Color(0x38, 0xBD, 0xF8)), e -> filterVersionsByLoader("optifine")));
+        loaderChips.add(createChipButton("Fabric", Icons.fabric(12, new Color(0xF5, 0x9E, 0x0B)), e -> filterVersionsByLoader("fabric")));
+        loaderChips.add(createChipButton("Forge", Icons.forge(12, new Color(0xEF, 0x44, 0x44)), e -> filterVersionsByLoader("forge")));
+        loaderChips.add(createChipButton("Forge + OptiFine", Icons.forgeOptifine(12, new Color(0xA8, 0x55, 0xF7)), e -> filterVersionsByLoader("forge_optifine")));
+        loaderChips.add(createChipButton("Ванилла", Icons.vanilla(12, new Color(0x22, 0xC5, 0x5E)), e -> filterVersionsByLoader("vanilla")));
         cardVersion.add(loaderChips);
         cardVersion.add(Box.createVerticalStrut(8));
 
@@ -662,7 +678,7 @@ public class Main extends JFrame {
 
         JPanel verChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         verChips.setOpaque(false);
-        verChips.add(createChipButton("⭐ 1.21.4", e -> selectQuickVersion("1.21.4")));
+        verChips.add(createChipButton("1.21.4", Icons.star(11, new Color(0xFA, 0xCC, 0x15)), e -> selectQuickVersion("1.21.4")));
         verChips.add(createChipButton("1.20.4", e -> selectQuickVersion("1.20.4")));
         verChips.add(createChipButton("1.16.5", e -> selectQuickVersion("1.16.5")));
         verChips.add(createChipButton("1.12.2", e -> selectQuickVersion("1.12.2")));
@@ -679,9 +695,9 @@ public class Main extends JFrame {
 
         JPanel folderChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         folderChips.setOpaque(false);
-        folderChips.add(createChipButton("📂 Папка модов (mods)", e -> openSubFolder("mods")));
-        folderChips.add(createChipButton("✨ Шейдеры (shaderpacks)", e -> openSubFolder("shaderpacks")));
-        folderChips.add(createChipButton("🎨 Ресурспаки", e -> openSubFolder("resourcepacks")));
+        folderChips.add(createChipButton("Папка модов", Icons.folder(12, new Color(0xFB, 0xBF, 0x24)), e -> openSubFolder("mods")));
+        folderChips.add(createChipButton("Шейдеры", Icons.shader(12, new Color(0xE8, 0x79, 0xF9)), e -> openSubFolder("shaderpacks")));
+        folderChips.add(createChipButton("Ресурспаки", Icons.palette(12, new Color(0x38, 0xBD, 0xF8)), e -> openSubFolder("resourcepacks")));
         cardVersion.add(folderChips);
         cardVersion.add(Box.createVerticalStrut(8));
 
@@ -701,7 +717,7 @@ public class Main extends JFrame {
         descBox.setOpaque(false);
         descBox.setBorder(new EmptyBorder(8, 10, 8, 10));
 
-        lblModDesc = new JLabel("<html>✨ Выберите сборку OptiFine, Fabric или Forge для игры с модами и шейдерами.</html>");
+        lblModDesc = new JLabel("<html><b>[Сборки]</b> Выберите OptiFine, Fabric или Forge для игры с модами и шейдерами.</html>");
         lblModDesc.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         lblModDesc.setForeground(new Color(0x94, 0xA3, 0xB8));
         descBox.add(lblModDesc, BorderLayout.CENTER);
@@ -779,19 +795,31 @@ public class Main extends JFrame {
         JPanel actionRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         actionRight.setOpaque(false);
 
-        btnStopGame = new JButton("⛔ Закрыть игру");
+        btnStopGame = new JButton("Остановить", Icons.stop(14, Color.WHITE)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0xBE, 0x12, 0x3C));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        btnStopGame.setIconTextGap(8);
         btnStopGame.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnStopGame.setForeground(Color.WHITE);
-        btnStopGame.setBackground(new Color(0xBE, 0x12, 0x3C));
         btnStopGame.setPreferredSize(new Dimension(140, 52));
         btnStopGame.setFocusPainted(false);
         btnStopGame.setBorderPainted(false);
+        btnStopGame.setContentAreaFilled(false);
+        btnStopGame.setOpaque(false);
         btnStopGame.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnStopGame.setVisible(false);
         btnStopGame.addActionListener(e -> stopGame());
         actionRight.add(btnStopGame);
 
-        btnPlay = new JButton("▶  ИГРАТЬ") {
+        btnPlay = new JButton("ИГРАТЬ", Icons.play(16, Color.WHITE)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -802,6 +830,7 @@ public class Main extends JFrame {
                 super.paintComponent(g);
             }
         };
+        btnPlay.setIconTextGap(10);
         btnPlay.setFont(new Font("Segoe UI", Font.BOLD, 17));
         btnPlay.setForeground(Color.WHITE);
         btnPlay.setPreferredSize(new Dimension(220, 52));
@@ -837,8 +866,8 @@ public class Main extends JFrame {
         return card;
     }
 
-    private JButton createChipButton(String text, ActionListener l) {
-        JButton btn = new JButton(text) {
+    private JButton createChipButton(String text, Icon icon, ActionListener l) {
+        JButton btn = new JButton(text, icon) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -858,6 +887,9 @@ public class Main extends JFrame {
         btn.setContentAreaFilled(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBorder(new EmptyBorder(5, 9, 5, 9));
+        if (icon != null) {
+            btn.setIconTextGap(6);
+        }
         btn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -872,11 +904,15 @@ public class Main extends JFrame {
         return btn;
     }
 
-    // Custom dark combo renderer
+    private JButton createChipButton(String text, ActionListener l) {
+        return createChipButton(text, null, l);
+    }
+
+    // Custom dark combo renderer with crisp vector icons
     private class VersionCellRenderer extends DefaultListCellRenderer {
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-            JPanel p = new JPanel(new BorderLayout(8, 0));
+            JPanel p = new JPanel(new BorderLayout(10, 0));
             p.setBorder(new EmptyBorder(6, 10, 6, 10));
             p.setOpaque(true);
 
@@ -887,7 +923,23 @@ public class Main extends JFrame {
             }
 
             if (value instanceof Downloader.VersionEntry entry) {
-                JLabel title = new JLabel(entry.id);
+                Icon icon;
+                if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
+                    icon = Icons.optifine(14, new Color(0x38, 0xBD, 0xF8));
+                } else if (entry.badge.contains("FABRIC")) {
+                    icon = Icons.fabric(14, new Color(0xF5, 0x9E, 0x0B));
+                } else if (entry.badge.contains("FORGE") && !entry.badge.contains("OPTIFINE")) {
+                    icon = Icons.forge(14, new Color(0xEF, 0x44, 0x44));
+                } else if (entry.badge.contains("FORGE") && entry.badge.contains("OPTIFINE")) {
+                    icon = Icons.forgeOptifine(14, new Color(0xA8, 0x55, 0xF7));
+                } else if (entry.isRelease()) {
+                    icon = Icons.vanilla(14, new Color(0x22, 0xC5, 0x5E));
+                } else {
+                    icon = Icons.star(14, new Color(0x94, 0xA3, 0xB8));
+                }
+
+                JLabel title = new JLabel(entry.id, icon, JLabel.LEFT);
+                title.setIconTextGap(8);
                 title.setFont(new Font("Segoe UI", Font.BOLD, 13));
                 title.setForeground(Color.WHITE);
 
@@ -898,9 +950,9 @@ public class Main extends JFrame {
                 p.add(title, BorderLayout.WEST);
                 p.add(badge, BorderLayout.EAST);
             } else {
-                JLabel l = new JLabel(value != null ? value.toString() : "");
-                l.setForeground(Color.WHITE);
-                p.add(l, BorderLayout.CENTER);
+                JLabel l = new JLabel(value != null ? value.toString() : "Выберите версию...");
+                l.setForeground(new Color(0x94, 0xA3, 0xB8));
+                p.add(l, BorderLayout.WEST);
             }
 
             return p;
@@ -1143,11 +1195,11 @@ public class Main extends JFrame {
 
         JPanel cBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         cBtns.setOpaque(false);
-        btnCopyLogs = createSmallButton("📋 Копировать", e -> {
+        btnCopyLogs = createSmallButton("Копировать", Icons.copy(12, currentTheme.accentPrimary), e -> {
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(consoleArea.getText()), null);
             lblStatus.setText("Логи скопированы в буфер!");
         });
-        btnClearLogs = createSmallButton("🗑 Очистить", e -> consoleArea.setText(""));
+        btnClearLogs = createSmallButton("Очистить", Icons.trash(12, new Color(0xF4, 0x3F, 0x5E)), e -> consoleArea.setText(""));
         cBtns.add(btnCopyLogs);
         cBtns.add(btnClearLogs);
         top.add(cBtns, BorderLayout.EAST);
@@ -1227,15 +1279,15 @@ public class Main extends JFrame {
 
             if ("all".equalsIgnoreCase(loader)) {
                 filtered.add(v);
-            } else if ("optifine".equalsIgnoreCase(loader) && v.badge.contains("OPTIFINE") && !v.badge.contains("FORGE+")) {
+            } else if ("optifine".equalsIgnoreCase(loader) && v.badge.contains("OPTIFINE") && !v.badge.contains("FORGE")) {
                 filtered.add(v);
             } else if ("fabric".equalsIgnoreCase(loader) && v.badge.contains("FABRIC")) {
                 filtered.add(v);
             } else if ("forge".equalsIgnoreCase(loader) && v.badge.contains("FORGE") && !v.badge.contains("OPTIFINE")) {
                 filtered.add(v);
-            } else if ("forge_optifine".equalsIgnoreCase(loader) && v.badge.contains("FORGE+")) {
+            } else if ("forge_optifine".equalsIgnoreCase(loader) && v.badge.contains("FORGE") && v.badge.contains("OPTIFINE")) {
                 filtered.add(v);
-            } else if ("vanilla".equalsIgnoreCase(loader) && !v.badge.contains("✨") && !v.badge.contains("🧵") && !v.badge.contains("🔨") && !v.badge.contains("⚔️")) {
+            } else if ("vanilla".equalsIgnoreCase(loader) && !v.badge.contains("OPTIFINE") && !v.badge.contains("FABRIC") && !v.badge.contains("FORGE")) {
                 filtered.add(v);
             }
         }
@@ -1267,16 +1319,16 @@ public class Main extends JFrame {
     private void updateVersionDescription(Downloader.VersionEntry entry) {
         if (lblModDesc == null || entry == null) return;
 
-        if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE+")) {
-            lblModDesc.setText("<html>✨ <b>Оптимизация OptiFine HD:</b> Двукратный прирост FPS, шейдеры BSL/Complementary, зум на C.</html>");
+        if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
+            lblModDesc.setText("<html><span style='color:#38BDF8;'><b>[OptiFine HD]</b></span> <b>Оптимизация и графика:</b> Двукратный прирост FPS, поддержка шейдеров BSL и зум на клавишу C.</html>");
         } else if (entry.badge.contains("FABRIC")) {
-            lblModDesc.setText("<html>🧵 <b>Модлоадер Fabric:</b> Легковесный движок модов. Поддержка Sodium, Iris, Lithium.</html>");
+            lblModDesc.setText("<html><span style='color:#F59E0B;'><b>[Fabric]</b></span> <b>Модлоадер Fabric:</b> Легковесный скоростной движок модов. Поддержка Sodium, Iris, Lithium.</html>");
         } else if (entry.badge.contains("FORGE") && !entry.badge.contains("OPTIFINE")) {
-            lblModDesc.setText("<html>🔨 <b>Модлоадер Forge:</b> Классическая богатая база модов Create, Twilight Forest.</html>");
-        } else if (entry.badge.contains("FORGE+")) {
-            lblModDesc.setText("<html>⚔️ <b>Сборка Forge + OptiFine:</b> Моды Forge + реалистичные шейдеры OptiFine!</html>");
+            lblModDesc.setText("<html><span style='color:#EF4444;'><b>[Forge]</b></span> <b>Модлоадер Forge:</b> Классическая библиотека тяжелых модификаций (Create, Twilight Forest и др.).</html>");
+        } else if (entry.badge.contains("FORGE") && entry.badge.contains("OPTIFINE")) {
+            lblModDesc.setText("<html><span style='color:#A855F7;'><b>[Forge + OptiFine]</b></span> <b>Гибридная сборка:</b> Полная поддержка модов Forge вместе с реалистичными шейдерами OptiFine!</html>");
         } else {
-            lblModDesc.setText("<html>⚡ <b>Официальная версия Mojang:</b> Чистый клиент без сторонних модов.</html>");
+            lblModDesc.setText("<html><span style='color:#22C55E;'><b>[Vanilla]</b></span> <b>Официальный релиз Mojang:</b> Чистый стабильный клиент без сторонних модификаций.</html>");
         }
     }
 
@@ -1318,11 +1370,15 @@ public class Main extends JFrame {
             allVersions = manifest.versions;
 
             SwingUtilities.invokeLater(() -> {
-                filterVersionsByLoader("all");
+                String prevSel = config.selectedVersion;
+                Downloader.VersionEntry currentSel = (Downloader.VersionEntry) cbVersions.getSelectedItem();
+                if (currentSel != null) prevSel = currentSel.id;
 
-                if (!config.selectedVersion.isBlank()) {
+                filterVersionsByLoader(currentModLoader);
+
+                if (prevSel != null && !prevSel.isBlank()) {
                     for (int i = 0; i < cbVersions.getItemCount(); i++) {
-                        if (cbVersions.getItemAt(i).id.equalsIgnoreCase(config.selectedVersion)) {
+                        if (cbVersions.getItemAt(i).id.equalsIgnoreCase(prevSel)) {
                             cbVersions.setSelectedIndex(i);
                             break;
                         }
@@ -1332,7 +1388,7 @@ public class Main extends JFrame {
                 updateSummaryLine();
             });
         } catch (Exception e) {
-            SwingUtilities.invokeLater(() -> lblStatus.setText("Ошибка загрузки версий: " + e.getMessage()));
+            SwingUtilities.invokeLater(() -> lblStatus.setText("Готов к запуску (офлайн)"));
         }
     }
 

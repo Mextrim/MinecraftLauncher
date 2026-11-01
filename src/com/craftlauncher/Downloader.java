@@ -62,6 +62,22 @@ public class Downloader {
         public List<VersionEntry> versions = new ArrayList<>();
     }
 
+    public static List<VersionEntry> getDefaultVersions() {
+        List<VersionEntry> list = new ArrayList<>();
+        list.add(new VersionEntry("1.21.4 (OptiFine)", "release", "", "OPTIFINE HD", "1.21.4"));
+        list.add(new VersionEntry("1.21.4 (Fabric)", "release", "", "FABRIC", "1.21.4"));
+        list.add(new VersionEntry("1.21.4 (Forge)", "release", "", "FORGE", "1.21.4"));
+        list.add(new VersionEntry("1.21.4 (Forge + OptiFine)", "release", "", "FORGE + OPTIFINE", "1.21.4"));
+        list.add(new VersionEntry("1.21.4", "release", "", "РЕЛИЗ", "1.21.4"));
+        list.add(new VersionEntry("1.20.4 (OptiFine)", "release", "", "OPTIFINE HD", "1.20.4"));
+        list.add(new VersionEntry("1.20.4", "release", "", "РЕЛИЗ", "1.20.4"));
+        list.add(new VersionEntry("1.16.5 (OptiFine)", "release", "", "OPTIFINE HD", "1.16.5"));
+        list.add(new VersionEntry("1.16.5", "release", "", "РЕЛИЗ", "1.16.5"));
+        list.add(new VersionEntry("1.12.2 (OptiFine)", "release", "", "OPTIFINE HD", "1.12.2"));
+        list.add(new VersionEntry("1.12.2", "release", "", "РЕЛИЗ", "1.12.2"));
+        return list;
+    }
+
     public ManifestResult getManifest() throws Exception {
         HttpRequest req = HttpRequest.newBuilder().uri(URI.create(MANIFEST_URL)).GET().build();
         HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
@@ -88,10 +104,10 @@ public class Downloader {
                     break;
                 }
             }
-            modded.add(new VersionEntry(baseVer + " (OptiFine)", "release", url, "✨ OPTIFINE", baseVer));
-            modded.add(new VersionEntry(baseVer + " (Fabric)", "release", url, "🧵 FABRIC", baseVer));
-            modded.add(new VersionEntry(baseVer + " (Forge)", "release", url, "🔨 FORGE", baseVer));
-            modded.add(new VersionEntry(baseVer + " (Forge + OptiFine)", "release", url, "⚔️ FORGE+OPTIFINE", baseVer));
+            modded.add(new VersionEntry(baseVer + " (OptiFine)", "release", url, "OPTIFINE HD", baseVer));
+            modded.add(new VersionEntry(baseVer + " (Fabric)", "release", url, "FABRIC", baseVer));
+            modded.add(new VersionEntry(baseVer + " (Forge)", "release", url, "FORGE", baseVer));
+            modded.add(new VersionEntry(baseVer + " (Forge + OptiFine)", "release", url, "FORGE + OPTIFINE", baseVer));
         }
         result.versions.addAll(0, modded);
 
