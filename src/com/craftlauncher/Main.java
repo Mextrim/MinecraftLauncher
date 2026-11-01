@@ -220,14 +220,14 @@ public class Main extends JFrame {
         brandPanel.add(titleBlock);
         titlebar.add(brandPanel, BorderLayout.WEST);
 
-        // Center: Navigation Tabs
+        // Center: Navigation Tabs with FontAwesome icons
         JPanel navTabsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 4, 8));
         navTabsPanel.setOpaque(false);
 
-        btnTabPlay = createNavTab("ИГРАТЬ", "play", true);
-        btnTabSettings = createNavTab("НАСТРОЙКИ", "settings", false);
-        btnTabConsole = createNavTab("КОНСОЛЬ", "console", false);
-        btnTabAbout = createNavTab("О ЛАУНЧЕРЕ", "about", false);
+        btnTabPlay = createNavTab("ИГРАТЬ", Icons.tabPlay(13, null), "play", true);
+        btnTabSettings = createNavTab("НАСТРОЙКИ", Icons.tabSettings(13, null), "settings", false);
+        btnTabConsole = createNavTab("КОНСОЛЬ", Icons.tabConsole(13, null), "console", false);
+        btnTabAbout = createNavTab("О ЛАУНЧЕРЕ", Icons.tabAbout(13, null), "about", false);
 
         navTabsPanel.add(btnTabPlay);
         navTabsPanel.add(btnTabSettings);
@@ -309,8 +309,8 @@ public class Main extends JFrame {
         rootPanel.add(contentCards, BorderLayout.CENTER);
     }
 
-    private JButton createNavTab(String text, String cardName, boolean active) {
-        JButton btn = new JButton(text) {
+    private JButton createNavTab(String text, Icon icon, String cardName, boolean active) {
+        JButton btn = new JButton(text, icon) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -331,7 +331,10 @@ public class Main extends JFrame {
         btn.setContentAreaFilled(false);
         btn.setOpaque(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btn.setBorder(new EmptyBorder(6, 14, 6, 14));
+        btn.setBorder(new EmptyBorder(6, 12, 6, 12));
+        if (icon != null) {
+            btn.setIconTextGap(7);
+        }
         btn.addActionListener(e -> {
             contentLayout.show(contentCards, cardName);
             updateNavTabsSelection(btn);
@@ -509,7 +512,8 @@ public class Main extends JFrame {
         JPanel cardPlayer = createCardContainer();
         cardPlayer.setLayout(new BoxLayout(cardPlayer, BoxLayout.Y_AXIS));
 
-        JLabel pSub = new JLabel("ПРОФИЛЬ ИГРОКА");
+        JLabel pSub = new JLabel("ПРОФИЛЬ ИГРОКА", Icons.user(11, currentTheme.accentPrimary), JLabel.LEFT);
+        pSub.setIconTextGap(6);
         pSub.setFont(new Font("Segoe UI", Font.BOLD, 10));
         pSub.setForeground(currentTheme.accentPrimary);
         JLabel pTitle = new JLabel("Персонаж и никнейм");
@@ -616,7 +620,8 @@ public class Main extends JFrame {
         vHeadRow.setOpaque(false);
         JPanel vTitles = new JPanel(new GridLayout(2, 1, 0, 0));
         vTitles.setOpaque(false);
-        JLabel vSub = new JLabel("ВЕРСИИ И СБОРКИ");
+        JLabel vSub = new JLabel("ВЕРСИИ И СБОРКИ", Icons.fabric(11, currentTheme.accentPrimary), JLabel.LEFT);
+        vSub.setIconTextGap(6);
         vSub.setFont(new Font("Segoe UI", Font.BOLD, 10));
         vSub.setForeground(currentTheme.accentPrimary);
         JLabel vTitle = new JLabel("Сборки, моды и версии");
@@ -1071,7 +1076,8 @@ public class Main extends JFrame {
         // 1. RAM Card
         JPanel cardRam = createCardContainer();
         cardRam.setLayout(new BoxLayout(cardRam, BoxLayout.Y_AXIS));
-        JLabel rHead = new JLabel("ВЫДЕЛЕНИЕ ОПЕРАТИВНОЙ ПАМЯТИ (RAM)");
+        JLabel rHead = new JLabel("ВЫДЕЛЕНИЕ ОПЕРАТИВНОЙ ПАМЯТИ (RAM)", Icons.ram(12, currentTheme.accentPrimary), JLabel.LEFT);
+        rHead.setIconTextGap(6);
         rHead.setFont(new Font("Segoe UI", Font.BOLD, 10));
         rHead.setForeground(currentTheme.accentPrimary);
         cardRam.add(rHead);
@@ -1107,7 +1113,8 @@ public class Main extends JFrame {
         // 2. Java Card
         JPanel cardJava = createCardContainer();
         cardJava.setLayout(new BoxLayout(cardJava, BoxLayout.Y_AXIS));
-        JLabel jHead = new JLabel("СРЕДА ВЫПОЛНЕНИЯ JAVA");
+        JLabel jHead = new JLabel("СРЕДА ВЫПОЛНЕНИЯ JAVA", Icons.java(12, currentTheme.accentPrimary), JLabel.LEFT);
+        jHead.setIconTextGap(6);
         jHead.setFont(new Font("Segoe UI", Font.BOLD, 10));
         jHead.setForeground(currentTheme.accentPrimary);
         cardJava.add(jHead);
@@ -1125,7 +1132,7 @@ public class Main extends JFrame {
         ));
         jRow.add(txtJavaPath, BorderLayout.CENTER);
 
-        JButton btnBrowseJava = createSmallButton("Обзор...", e -> {
+        JButton btnBrowseJava = createSmallButton("Обзор...", Icons.folder(12, currentTheme.accentPrimary), e -> {
             JFileChooser fc = new JFileChooser("C:\\Program Files");
             if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 txtJavaPath.setText(fc.getSelectedFile().getAbsolutePath());
@@ -1141,7 +1148,8 @@ public class Main extends JFrame {
         // 3. Game Directory Card
         JPanel cardDir = createCardContainer();
         cardDir.setLayout(new BoxLayout(cardDir, BoxLayout.Y_AXIS));
-        JLabel dHead = new JLabel("РАБОЧАЯ ПАПКА (.MINECRAFT)");
+        JLabel dHead = new JLabel("РАБОЧАЯ ПАПКА (.MINECRAFT)", Icons.folder(12, currentTheme.accentPrimary), JLabel.LEFT);
+        dHead.setIconTextGap(6);
         dHead.setFont(new Font("Segoe UI", Font.BOLD, 10));
         dHead.setForeground(currentTheme.accentPrimary);
         cardDir.add(dHead);
@@ -1159,7 +1167,7 @@ public class Main extends JFrame {
         ));
         dRow.add(txtGameDir, BorderLayout.CENTER);
 
-        JButton btnBrowseDir = createSmallButton("Обзор...", e -> {
+        JButton btnBrowseDir = createSmallButton("Обзор...", Icons.folder(12, currentTheme.accentPrimary), e -> {
             JFileChooser fc = new JFileChooser(txtGameDir.getText());
             fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -1188,7 +1196,8 @@ public class Main extends JFrame {
 
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
-        JLabel cTitle = new JLabel("Консоль вывода Minecraft");
+        JLabel cTitle = new JLabel("Консоль вывода Minecraft", Icons.tabConsole(18, currentTheme.accentPrimary), JLabel.LEFT);
+        cTitle.setIconTextGap(8);
         cTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
         cTitle.setForeground(Color.WHITE);
         top.add(cTitle, BorderLayout.WEST);
@@ -1229,7 +1238,8 @@ public class Main extends JFrame {
         JPanel card = createCardContainer();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JLabel title = new JLabel("Minecraft Launcher 2026 (Java Edition)");
+        JLabel title = new JLabel("Minecraft Launcher (Java Edition)", Icons.tabAbout(18, currentTheme.accentPrimary), JLabel.LEFT);
+        title.setIconTextGap(8);
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(Color.WHITE);
         card.add(title);
