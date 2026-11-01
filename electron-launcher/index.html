@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Minecraft Launcher (Electron + Rust)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Window Container -->
+  <div class="window-container">
+
+    <!-- Title Bar -->
+    <header class="titlebar">
+      <div class="titlebar-drag">
+        <div class="brand">
+          <div class="brand-icon">⛏</div>
+          <span class="brand-text">MINECRAFT LAUNCHER</span>
+          <span class="badge-tag">RUST + ELECTRON</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="tab-play">🎮 Играть</button>
+        <button class="nav-tab" data-tab="tab-settings">⚙️ Настройки</button>
+        <button class="nav-tab" data-tab="tab-console">📋 Консоль</button>
+        <button class="nav-tab" data-tab="tab-about">ℹ️ О лаунчере</button>
+      </nav>
+
+      <!-- Quick Theme Switcher in Header -->
+      <div class="theme-dropdown-wrapper">
+        <button id="btn-theme-dropdown" class="theme-dropdown-trigger" title="Быстрая смена темы">
+          <span class="theme-icon">🎨</span>
+          <span id="current-theme-label">Изумруд</span>
+          <span class="arrow-down">▾</span>
+        </button>
+        <div id="theme-popup-menu" class="theme-popup-menu hidden">
+          <div class="theme-popup-item" data-theme-id="emerald">
+            <span class="swatch swatch-emerald"></span>
+            <span>Изумрудная (Emerald)</span>
+          </div>
+          <div class="theme-popup-item" data-theme-id="diamond">
+            <span class="swatch swatch-diamond"></span>
+            <span>Алмазная (Diamond)</span>
+          </div>
+          <div class="theme-popup-item" data-theme-id="nether">
+            <span class="swatch swatch-nether"></span>
+            <span>Незерит & Лава (Nether)</span>
+          </div>
+          <div class="theme-popup-item" data-theme-id="amethyst">
+            <span class="swatch swatch-amethyst"></span>
+            <span>Аметистовая (Amethyst)</span>
+          </div>
+          <div class="theme-popup-item" data-theme-id="redstone">
+            <span class="swatch swatch-redstone"></span>
+            <span>Редстоун (Redstone)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Window Controls -->
+      <div class="window-controls">
+        <button id="btn-minimize" class="win-btn" title="Свернуть">—</button>
+        <button id="btn-maximize" class="win-btn" title="Развернуть">⬜</button>
+        <button id="btn-close" class="win-btn close" title="Закрыть">✕</button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+
+      <!-- ================= TAB: PLAY ================= -->
+      <section id="tab-play" class="tab-content active">
+        <!-- Hero Banner -->
+        <div class="hero-banner">
+          <div class="hero-text">
+            <h2>Быстрый запуск Minecraft</h2>
+            <p>Новое поколение лаунчера на связке <strong>Electron UI</strong> и высокоскоростного бэкенда на <strong>Rust</strong>.</p>
+          </div>
+          <div id="game-status-badge" class="status-badge hidden">
+            <span class="status-dot"></span>
+            <span class="status-badge-text">ИГРА АКТИВНА</span>
+          </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="cards-grid">
+          <!-- Profile Card -->
+          <div class="card">
+            <div class="card-subtitle">ПРОФИЛЬ ИГРОКА</div>
+            <div class="card-title">Никнейм в игре</div>
+
+            <div class="input-avatar-group">
+              <div class="steve-avatar">👤</div>
+              <input type="text" id="input-nickname" class="modern-input" maxlength="16" placeholder="Player" spellcheck="false">
+            </div>
+            <div class="card-hint">
+              🔒 Офлайн-режим. Миры, инвентарь и скины привязываются к этому нику.
+            </div>
+          </div>
+
+          <!-- Version Card -->
+          <div class="card">
+            <div class="card-header-row">
+              <span class="card-subtitle">ВЕРСИЯ И СБОРКИ</span>
+              <button id="btn-refresh-versions" class="btn-refresh" title="Обновить список версий">🔄 Обновить</button>
+            </div>
+            <div class="card-title">Сборки, моды и версии</div>
+
+            <!-- ModLoader Selector Pills -->
+            <div class="modloader-pill-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+              <button class="chip-btn active" data-loader="all">⚡ Все</button>
+              <button class="chip-btn" data-loader="optifine">✨ OptiFine</button>
+              <button class="chip-btn" data-loader="fabric">🧵 Fabric</button>
+              <button class="chip-btn" data-loader="forge">🔨 Forge</button>
+              <button class="chip-btn" data-loader="forge_optifine">⚔️ Forge+OptiFine</button>
+              <button class="chip-btn" data-loader="vanilla">Ванилла</button>
+            </div>
+
+            <select id="select-version" class="modern-select">
+              <option value="">Загрузка списка версий с Mojang...</option>
+            </select>
+
+            <!-- Quick Mod Folders -->
+            <div class="folders-pill-row" style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; margin-bottom:8px;">
+              <button id="btn-open-mods" class="chip-btn" title="Открыть папку модов">📂 Папка модов (mods)</button>
+              <button id="btn-open-shaders" class="chip-btn" title="Открыть папку шейдеров">✨ Шейдеры (shaderpacks)</button>
+            </div>
+
+            <!-- Modpack Info Banner -->
+            <div id="mod-description-box" class="card-hint" style="margin-top:6px; font-size:11px; line-height:1.4;">
+              ✨ Выберите готовую сборку OptiFine, Fabric или Forge для игры с модами и шейдерами.
+            </div>
+
+            <label class="modern-checkbox-label" style="margin-top:8px;">
+              <input type="checkbox" id="check-snapshots">
+              <span>Показывать тестовые снапшоты и беты</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Action Footer -->
+        <div class="action-card">
+          <div class="action-info">
+            <div class="status-row">
+              <span id="label-status" class="status-message">Готов к запуску</span>
+              <span id="label-percent" class="status-percent"></span>
+            </div>
+            <div class="progress-track">
+              <div id="progress-bar" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="btn-stop-game" class="btn-danger hidden">⛔ Закрыть игру</button>
+            <button id="btn-play" class="btn-play">
+              <span class="play-icon">▶</span>
+              <span id="btn-play-text">ИГРАТЬ</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: SETTINGS ================= -->
+      <section id="tab-settings" class="tab-content">
+        <div class="settings-container">
+          <h2 class="section-title">Параметры запуска и конфигурация</h2>
+
+          <!-- Themes Gallery Card -->
+          <div class="card setting-card">
+            <div class="setting-header">
+              <span class="setting-title">🎨 Темы оформления (Themes)</span>
+              <span class="setting-subnote">Мгновенное переключение дизайна</span>
+            </div>
+            <p class="setting-desc">Выберите визуальную палитру в стиле ключевых элементов Minecraft.</p>
+
+            <div class="theme-cards-gallery">
+              <!-- Emerald -->
+              <div class="theme-card active" data-theme-id="emerald">
+                <div class="theme-preview preview-emerald">
+                  <span class="preview-dot"></span>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-card-name">Изумрудная</div>
+                  <div class="theme-card-desc">Классический стиль Minecraft</div>
+                </div>
+              </div>
+
+              <!-- Diamond -->
+              <div class="theme-card" data-theme-id="diamond">
+                <div class="theme-preview preview-diamond">
+                  <span class="preview-dot"></span>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-card-name">Алмазная</div>
+                  <div class="theme-card-desc">Кристальный неоново-голубой</div>
+                </div>
+              </div>
+
+              <!-- Netherite / Lava -->
+              <div class="theme-card" data-theme-id="nether">
+                <div class="theme-preview preview-nether">
+                  <span class="preview-dot"></span>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-card-name">Незерит & Лава</div>
+                  <div class="theme-card-desc">Огненный магматический стиль</div>
+                </div>
+              </div>
+
+              <!-- Amethyst -->
+              <div class="theme-card" data-theme-id="amethyst">
+                <div class="theme-preview preview-amethyst">
+                  <span class="preview-dot"></span>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-card-name">Аметистовая</div>
+                  <div class="theme-card-desc">Мистический сияющий кристалл</div>
+                </div>
+              </div>
+
+              <!-- Redstone -->
+              <div class="theme-card" data-theme-id="redstone">
+                <div class="theme-preview preview-redstone">
+                  <span class="preview-dot"></span>
+                </div>
+                <div class="theme-card-info">
+                  <div class="theme-card-name">Редстоун</div>
+                  <div class="theme-card-desc">Киберпанк & заряженная энергия</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RAM Card -->
+          <div class="card setting-card">
+            <div class="setting-header">
+              <span class="setting-title">Выделение оперативной памяти (RAM)</span>
+              <span id="label-ram-val" class="ram-display">4096 МБ (4.0 ГБ)</span>
+            </div>
+            <p class="setting-desc">Рекомендуется 2–4 ГБ для обычной игры, 6–8 ГБ для модов и шейдеров.</p>
+            <input type="range" id="slider-ram" min="1024" max="16384" step="512" value="4096" class="modern-slider">
+            <div class="slider-ticks">
+              <span>1 ГБ</span>
+              <span>4 ГБ</span>
+              <span>8 ГБ</span>
+              <span>12 ГБ</span>
+              <span>16 ГБ</span>
+            </div>
+          </div>
+
+          <!-- Java Card -->
+          <div class="card setting-card">
+            <span class="setting-title">Среда выполнения Java</span>
+            <p class="setting-desc">Minecraft 1.20.5+ требует Java 21+, 1.18+ требует Java 17+, старые версии — Java 8.</p>
+
+            <div class="input-btn-group">
+              <input type="text" id="input-java-path" class="modern-input" placeholder="javaw.exe или java.exe">
+              <button id="btn-browse-java" class="btn-secondary">Обзор...</button>
+              <button id="btn-autodetect-java" class="btn-secondary">Автопоиск</button>
+            </div>
+
+            <div class="sub-label">Обнаруженные версии Java в системе (кликните для выбора):</div>
+            <ul id="list-detected-javas" class="modern-list">
+              <li class="loading-item">Поиск Java...</li>
+            </ul>
+          </div>
+
+          <!-- Game Directory -->
+          <div class="card setting-card">
+            <span class="setting-title">Папка игры (.minecraft)</span>
+            <p class="setting-desc">Место хранения сохранений миров, скриншотов, текстур и модов.</p>
+
+            <div class="input-btn-group">
+              <input type="text" id="input-gamedir" class="modern-input" placeholder="Путь к .minecraft">
+              <button id="btn-browse-gamedir" class="btn-secondary">Обзор...</button>
+            </div>
+          </div>
+
+          <!-- Resolution & JVM -->
+          <div class="card setting-card">
+            <span class="setting-title">Разрешение экрана и параметры JVM</span>
+
+            <div class="resolution-row">
+              <label>Ширина: <input type="number" id="input-width" class="modern-input num" value="1280"></label>
+              <label>Высота: <input type="number" id="input-height" class="modern-input num" value="720"></label>
+              <label class="modern-checkbox-label">
+                <input type="checkbox" id="check-fullscreen">
+                <span>Полноэкранный режим</span>
+              </label>
+            </div>
+
+            <div class="sub-label">Дополнительные аргументы JVM:</div>
+            <input type="text" id="input-jvm-args" class="modern-input" value="-XX:+UseG1GC">
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: CONSOLE ================= -->
+      <section id="tab-console" class="tab-content">
+        <div class="console-header">
+          <div class="console-title-group">
+            <h3>Консоль логов Minecraft (Rust Output Stream)</h3>
+            <span id="console-status-pill" class="badge-pill hidden">АКТИВЕН</span>
+          </div>
+          <div class="console-actions">
+            <button id="btn-copy-logs" class="btn-secondary">📋 Копировать все</button>
+            <button id="btn-clear-logs" class="btn-secondary">Очистить</button>
+            <button id="btn-kill-game" class="btn-danger hidden">Остановить процесс</button>
+          </div>
+        </div>
+
+        <div class="console-terminal">
+          <pre id="console-output"></pre>
+        </div>
+      </section>
+
+      <!-- ================= TAB: ABOUT ================= -->
+      <section id="tab-about" class="tab-content">
+        <div class="about-card card">
+          <div class="about-header">
+            <div class="about-logo">⛏</div>
+            <div>
+              <h2>Minecraft Launcher 2.1</h2>
+              <div class="about-version">Технологический стек: <strong>Electron (Frontend) + Rust (High-Performance Core)</strong></div>
+            </div>
+          </div>
+          <hr class="divider">
+          <h4>Преимущества архитектуры:</h4>
+          <ul class="features-list">
+            <li>⚡ <strong>Ядро на Rust</strong>: максимальная скорость параллельной загрузки ресурсов и работы с диском.</li>
+            <li>🎨 <strong>Темизация</strong>: 5 потрясающих тем (Изумруд, Алмаз, Незерит, Аметист, Редстоун) с мгновенным переключением.</li>
+            <li>🎨 <strong>Интерфейс на Electron</strong>: современная темная тема, плавные анимации и интуитивный дизайн.</li>
+            <li>📦 <strong>Прямая интеграция с Mojang</strong>: скачивание официальных релизов и снапшотов.</li>
+            <li>👤 <strong>Офлайн-режим</strong>: совместим со всеми локальными и пиратскими серверами по стандарту UUID RFC 4122 v3.</li>
+            <li>🔍 <strong>Автоопределение Java</strong>: автоматический подбор Java 8/17/21/25 под версию игры.</li>
+          </ul>
+          <hr class="divider">
+          <p class="about-footer">Приятной игры в мире блоков!</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
