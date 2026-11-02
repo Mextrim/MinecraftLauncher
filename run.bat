@@ -1,2 +1,2 @@
 @echo off
-start "" "%~dp0MinecraftLauncher.exe"
+start "" "%~dp0MexLauncher.exe"

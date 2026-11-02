@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main extends JFrame {
+public class MexLauncher extends JFrame {
 
     private Config config;
     private UITheme currentTheme;
@@ -62,7 +62,7 @@ public class Main extends JFrame {
     // Window Dragging
     private Point mouseClickPoint;
 
-    public Main() {
+    public MexLauncher() {
         this.config = Config.load();
         this.currentTheme = UITheme.get(config.theme);
         this.allVersions = Downloader.getDefaultVersions();
@@ -450,7 +450,7 @@ public class Main extends JFrame {
         heroLeft.setLayout(new BoxLayout(heroLeft, BoxLayout.Y_AXIS));
         heroLeft.setOpaque(false);
 
-        JLabel tag = new JLabel("JAVA EDITION • СИНХРОНИЗАЦИЯ С MOJANG");
+        JLabel tag = new JLabel("JAVA EDITION • СИНХРОНИЗАЦИЯ С GITHUB & MOJANG");
         tag.setFont(new Font("Segoe UI", Font.BOLD, 10));
         tag.setForeground(currentTheme.accentPrimary);
 
@@ -493,6 +493,28 @@ public class Main extends JFrame {
         statusBadge.add(statusText);
         statusBadge.setVisible(false);
         heroRight.add(statusBadge);
+
+        JPanel ghPill = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4)) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x10, 0x13, 0x1E));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+                g2.setColor(currentTheme.borderColor);
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
+                g2.dispose();
+            }
+        };
+        ghPill.setOpaque(false);
+        JLabel ghDot = new JLabel(Icons.checkCircle(11, new Color(0x4A, 0xDE, 0x80)));
+        JLabel ghText = new JLabel("GitHub Cloud • Синхронизация");
+        ghText.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        ghText.setForeground(new Color(0xCB, 0xD5, 0xE1));
+        ghPill.add(ghDot);
+        ghPill.add(ghText);
+        heroRight.add(ghPill);
+        heroRight.add(Box.createVerticalStrut(4));
 
         JPanel mojangPill = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 4)) {
             @Override
@@ -1565,7 +1587,8 @@ public class Main extends JFrame {
 
     private void loadInitialData() {
         try {
-            setStatus("Синхронизация версий с серверов Mojang...", Icons.refresh(14, currentTheme.accentPrimary));
+            setStatus("Синхронизация данных с GitHub и Mojang...", Icons.refresh(14, currentTheme.accentPrimary));
+            downloader.syncWithGitHub();
             Downloader.ManifestResult manifest = downloader.getManifest();
             allVersions = manifest.versions;
 
@@ -1731,7 +1754,7 @@ public class Main extends JFrame {
             try {
                 UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
             } catch (Exception ignored) {}
-            new Main().setVisible(true);
+            new MexLauncher().setVisible(true);
         });
     }
 }

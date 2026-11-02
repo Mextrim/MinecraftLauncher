@@ -14,9 +14,42 @@ public class Downloader {
 
     private static final String MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
     private static final String RESOURCES_BASE_URL = "https://resources.download.minecraft.net/";
-    public static final String YOLO_MODPACK_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/yolo.zip";
-    public static final String FORGE_1_20_1_RUNTIME_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/forge-1.20.1-runtime.zip";
+    public static String YOLO_MODPACK_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/yolo.zip";
+    public static String FORGE_1_20_1_RUNTIME_URL = "https://github.com/Mextrim/MinecraftLauncher/releases/download/v2.0.0/forge-1.20.1-runtime.zip";
     public static final String JRE_17_URL = "https://api.adoptium.net/v3/binary/latest/17/ga/windows/x64/jre/hotspot/normal/eclipse";
+    public static String LATEST_GITHUB_TAG = "v2.5.0";
+    public static boolean GITHUB_SYNCED = false;
+
+    public void syncWithGitHub() {
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.github.com/repos/Mextrim/MinecraftLauncher/releases/latest"))
+                .header("User-Agent", "MexLauncher")
+                .timeout(Duration.ofSeconds(6))
+                .GET()
+                .build();
+            HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                MiniJson.Value root = MiniJson.parse(resp.body());
+                LATEST_GITHUB_TAG = root.get("tag_name").asString("v2.5.0");
+                MiniJson.Value assets = root.get("assets");
+                if (assets.isArray()) {
+                    for (MiniJson.Value a : assets.asArray()) {
+                        String name = a.get("name").asString();
+                        String url = a.get("browser_download_url").asString();
+                        if ("yolo.zip".equalsIgnoreCase(name)) {
+                            YOLO_MODPACK_URL = url;
+                        } else if ("forge-1.20.1-runtime.zip".equalsIgnoreCase(name)) {
+                            FORGE_1_20_1_RUNTIME_URL = url;
+                        }
+                    }
+                }
+                GITHUB_SYNCED = true;
+            }
+        } catch (Exception ignored) {
+            GITHUB_SYNCED = false;
+        }
+    }
 
     private final HttpClient http = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
