@@ -26,6 +26,7 @@ public class Main extends JFrame {
     private JPanel contentCards;
 
     // Play View
+    private SkinViewPanel skinViewPanel;
     private AvatarPanel avatarPanel;
     private JTextField txtNickname;
     private JComboBox<Downloader.VersionEntry> cbVersions;
@@ -82,14 +83,14 @@ public class Main extends JFrame {
         updateSummaryLine();
 
         setSize(1040, 700);
-        setMinimumSize(new Dimension(920, 620));
+        setMinimumSize(new Dimension(980, 650));
         setLocationRelativeTo(null);
 
         new Thread(this::loadInitialData).start();
     }
 
     private void initWindow() {
-        setTitle("Minecraft Launcher");
+        setTitle("Mex Launcher — Сделано с любовью специально для моих друганов");
         setIconImage(createLauncherIcon());
         setUndecorated(true);
         setBackground(new Color(0, 0, 0, 0));
@@ -196,18 +197,31 @@ public class Main extends JFrame {
         JPanel titleRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         titleRow.setOpaque(false);
 
-        JLabel mcLabel = new JLabel("MINECRAFT");
-        mcLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        JLabel mcLabel = new JLabel("MEX");
+        mcLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         mcLabel.setForeground(Color.WHITE);
 
         JLabel lcLabel = new JLabel("LAUNCHER");
-        lcLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lcLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lcLabel.setForeground(currentTheme.accentPrimary);
+
+        JLabel friendBadge = new JLabel(" ДЛЯ ДРУГАНОВ ", Icons.heart(9, new Color(0xF4, 0x3F, 0x5E)), SwingConstants.LEFT);
+        friendBadge.setHorizontalTextPosition(SwingConstants.LEFT);
+        friendBadge.setIconTextGap(4);
+        friendBadge.setFont(new Font("Segoe UI", Font.BOLD, 9));
+        friendBadge.setForeground(new Color(0xF4, 0x3F, 0x5E));
+        friendBadge.setBackground(new Color(0x3B, 0x11, 0x1A));
+        friendBadge.setOpaque(true);
+        friendBadge.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 
         titleRow.add(mcLabel);
         titleRow.add(lcLabel);
+        titleRow.add(Box.createHorizontalStrut(4));
+        titleRow.add(friendBadge);
 
-        JLabel edLabel = new JLabel("JAVA 25 EDITION");
+        JLabel edLabel = new JLabel("СДЕЛАНО С ЛЮБОВЬЮ СПЕЦИАЛЬНО ДЛЯ ДРУГАНОВ", Icons.heart(9, new Color(0xF4, 0x3F, 0x5E)), SwingConstants.LEFT);
+        edLabel.setHorizontalTextPosition(SwingConstants.LEFT);
+        edLabel.setIconTextGap(5);
         edLabel.setFont(new Font("Segoe UI", Font.BOLD, 9));
         edLabel.setForeground(new Color(0x64, 0x74, 0x8B));
 
@@ -508,38 +522,59 @@ public class Main extends JFrame {
         JPanel cardsGrid = new JPanel(new GridLayout(1, 2, 16, 0));
         cardsGrid.setOpaque(false);
 
-        // ================= LEFT CARD: PLAYER PROFILE =================
+        // ================= LEFT CARD: PLAYER & SKIN STUDIO =================
         JPanel cardPlayer = createCardContainer();
         cardPlayer.setLayout(new BoxLayout(cardPlayer, BoxLayout.Y_AXIS));
 
-        JLabel pSub = new JLabel("ПРОФИЛЬ ИГРОКА", Icons.user(11, currentTheme.accentPrimary), JLabel.LEFT);
+        JPanel pHeaderRow = new JPanel(new BorderLayout());
+        pHeaderRow.setOpaque(false);
+        JPanel pTitles = new JPanel(new GridLayout(2, 1, 0, 0));
+        pTitles.setOpaque(false);
+        JLabel pSub = new JLabel("ПЕРСОНАЖ И СКИН", Icons.user(11, currentTheme.accentPrimary), JLabel.LEFT);
         pSub.setIconTextGap(6);
         pSub.setFont(new Font("Segoe UI", Font.BOLD, 10));
         pSub.setForeground(currentTheme.accentPrimary);
-        JLabel pTitle = new JLabel("Персонаж и никнейм");
+        JLabel pTitle = new JLabel("Скин и никнейм игрока");
         pTitle.setFont(new Font("Segoe UI", Font.BOLD, 16));
         pTitle.setForeground(Color.WHITE);
+        pTitles.add(pSub);
+        pTitles.add(pTitle);
+        pHeaderRow.add(pTitles, BorderLayout.WEST);
+        cardPlayer.add(pHeaderRow);
+        cardPlayer.add(Box.createVerticalStrut(10));
 
-        cardPlayer.add(pSub);
-        cardPlayer.add(pTitle);
-        cardPlayer.add(Box.createVerticalStrut(12));
+        // Center split: Left = SkinViewPanel (2D character), Right = Nickname & Skin selectors
+        JPanel studioPanel = new JPanel(new BorderLayout(14, 0));
+        studioPanel.setOpaque(false);
 
-        // Avatar + Nickname Row
-        JPanel nickRow = new JPanel(new BorderLayout(12, 0));
-        nickRow.setOpaque(false);
-        nickRow.setMaximumSize(new Dimension(Short.MAX_VALUE, 52));
+        // 2D Character model preview on podium
+        skinViewPanel = new SkinViewPanel(config, currentTheme);
+        skinViewPanel.setPreferredSize(new Dimension(110, 215));
+        skinViewPanel.setMinimumSize(new Dimension(100, 200));
+        studioPanel.add(skinViewPanel, BorderLayout.WEST);
 
-        avatarPanel = new AvatarPanel(config.avatar);
-        nickRow.add(avatarPanel, BorderLayout.WEST);
+        // Right side controls: Nickname, presets, custom skin buttons
+        JPanel controlsPanel = new JPanel();
+        controlsPanel.setLayout(new BoxLayout(controlsPanel, BoxLayout.Y_AXIS));
+        controlsPanel.setOpaque(false);
+
+        // 1. Nickname
+        JLabel lblNick = new JLabel("Никнейм игрока:");
+        lblNick.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblNick.setForeground(new Color(0x94, 0xA3, 0xB8));
+        controlsPanel.add(lblNick);
+        controlsPanel.add(Box.createVerticalStrut(4));
 
         txtNickname = new JTextField(config.nickname);
-        txtNickname.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        txtNickname.setFont(new Font("Segoe UI", Font.BOLD, 14));
         txtNickname.setForeground(Color.WHITE);
         txtNickname.setCaretColor(currentTheme.accentPrimary);
         txtNickname.setBackground(currentTheme.bgInput);
+        txtNickname.setMaximumSize(new Dimension(Short.MAX_VALUE, 36));
+        txtNickname.setPreferredSize(new Dimension(240, 36));
         txtNickname.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(currentTheme.borderColor, 1),
-            new EmptyBorder(8, 12, 8, 12)
+            new EmptyBorder(6, 10, 6, 10)
         ));
         txtNickname.addKeyListener(new KeyAdapter() {
             @Override
@@ -549,45 +584,51 @@ public class Main extends JFrame {
                 updateSummaryLine();
             }
         });
-        nickRow.add(txtNickname, BorderLayout.CENTER);
-        cardPlayer.add(nickRow);
-        cardPlayer.add(Box.createVerticalStrut(12));
+        controlsPanel.add(txtNickname);
+        controlsPanel.add(Box.createVerticalStrut(10));
 
-        // Choose Avatar Chips
-        JLabel lblAvTitle = new JLabel("Выберите скин/аватар:");
-        lblAvTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        lblAvTitle.setForeground(new Color(0x94, 0xA3, 0xB8));
-        cardPlayer.add(lblAvTitle);
-        cardPlayer.add(Box.createVerticalStrut(4));
+        // 2. Skin presets
+        JLabel lblSkinPresets = new JLabel("Коллекция готовых скинов:");
+        lblSkinPresets.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblSkinPresets.setForeground(new Color(0x94, 0xA3, 0xB8));
+        controlsPanel.add(lblSkinPresets);
+        controlsPanel.add(Box.createVerticalStrut(4));
 
-        JPanel avChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        avChips.setOpaque(false);
-        avChips.add(createChipButton("Стив", Icons.user(11, new Color(0x60, 0xA5, 0xFA)), e -> switchAvatar("steve")));
-        avChips.add(createChipButton("Алекс", Icons.user(11, new Color(0xFB, 0x92, 0x3C)), e -> switchAvatar("alex")));
-        avChips.add(createChipButton("Крипер", Icons.creeper(11, new Color(0x4A, 0xDE, 0x80)), e -> switchAvatar("creeper")));
-        avChips.add(createChipButton("Эндермен", Icons.enderman(11, new Color(0xC0, 0x84, 0xFC)), e -> switchAvatar("enderman")));
-        cardPlayer.add(avChips);
-        cardPlayer.add(Box.createVerticalStrut(12));
+        JPanel row1 = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        row1.setOpaque(false);
+        row1.add(createChipButton("Стив", Icons.user(11, new Color(0x60, 0xA5, 0xFA)), e -> switchSkinPreset("steve")));
+        row1.add(createChipButton("Алекс", Icons.user(11, new Color(0xFB, 0x92, 0x3C)), e -> switchSkinPreset("alex")));
+        row1.add(createChipButton("Крипер", Icons.creeper(11, new Color(0x4A, 0xDE, 0x80)), e -> switchSkinPreset("creeper_hoodie")));
+        controlsPanel.add(row1);
+        controlsPanel.add(Box.createVerticalStrut(4));
 
-        // Quick Nicknames Chips
-        JLabel lblQuickNick = new JLabel("Быстрый ник:");
-        lblQuickNick.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        lblQuickNick.setForeground(new Color(0x94, 0xA3, 0xB8));
-        cardPlayer.add(lblQuickNick);
-        cardPlayer.add(Box.createVerticalStrut(4));
+        JPanel row2 = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        row2.setOpaque(false);
+        row2.add(createChipButton("Кибер", Icons.optifine(11, new Color(0x38, 0xBD, 0xF8)), e -> switchSkinPreset("cyberpunk")));
+        row2.add(createChipButton("Спецназ", Icons.shield(11, new Color(0xFB, 0xBF, 0x24)), e -> switchSkinPreset("military")));
+        row2.add(createChipButton("Ассасин", Icons.ghost(11, new Color(0xC0, 0x84, 0xFC)), e -> switchSkinPreset("shadow")));
+        controlsPanel.add(row2);
+        controlsPanel.add(Box.createVerticalStrut(8));
 
-        JPanel nickChips = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
-        nickChips.setOpaque(false);
-        nickChips.add(createChipButton("Player", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Player")));
-        nickChips.add(createChipButton("Steve", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Steve")));
-        nickChips.add(createChipButton("Alex", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Alex")));
-        nickChips.add(createChipButton("Crafter", Icons.tag(10, new Color(0x94, 0xA3, 0xB8)), e -> setQuickNick("Crafter")));
-        cardPlayer.add(nickChips);
+        // 3. Custom skin buttons
+        JLabel lblCustomSkin = new JLabel("Свой скин:");
+        lblCustomSkin.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblCustomSkin.setForeground(new Color(0x94, 0xA3, 0xB8));
+        controlsPanel.add(lblCustomSkin);
+        controlsPanel.add(Box.createVerticalStrut(4));
 
+        JPanel rowCustom = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        rowCustom.setOpaque(false);
+        rowCustom.add(createChipButton("Загрузить .PNG", Icons.folder(11, currentTheme.accentPrimary), e -> chooseCustomSkin()));
+        rowCustom.add(createChipButton("По нику Mojang", Icons.download(11, currentTheme.accentPrimary), e -> downloadSkinByNick()));
+        controlsPanel.add(rowCustom);
+
+        studioPanel.add(controlsPanel, BorderLayout.CENTER);
+        cardPlayer.add(studioPanel);
         cardPlayer.add(Box.createVerticalGlue());
 
-        // Offline Info Pill
-        JPanel offlinePill = new JPanel(new BorderLayout(8, 0)) {
+        // Skin & Pack Active Info Pill
+        JPanel skinInfoPill = new JPanel(new BorderLayout(8, 0)) {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -599,17 +640,17 @@ public class Main extends JFrame {
                 g2.dispose();
             }
         };
-        offlinePill.setOpaque(false);
-        offlinePill.setBorder(new EmptyBorder(10, 12, 10, 12));
-        JLabel lockIcon = new JLabel(Icons.lock(15, currentTheme.accentPrimary));
-        JLabel hint = new JLabel("<html>Офлайн-режим. Миры, инвентарь и скины привязываются локально к этому нику.</html>");
-        hint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        hint.setForeground(new Color(0x94, 0xA3, 0xB8));
-        offlinePill.add(lockIcon, BorderLayout.WEST);
-        offlinePill.add(hint, BorderLayout.CENTER);
-        cardPlayer.add(offlinePill);
+        skinInfoPill.setOpaque(false);
+        skinInfoPill.setBorder(new EmptyBorder(8, 12, 8, 12));
+        JLabel skinOkIcon = new JLabel(Icons.checkCircle(14, new Color(0x4A, 0xDE, 0x80)));
+        JLabel skinHint = new JLabel("<html><b>MEX SkinPack</b> активен • Скин автоматически сохраняется и отображается в игре!</html>");
+        skinHint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        skinHint.setForeground(new Color(0xCB, 0xD5, 0xE1));
+        skinInfoPill.add(skinOkIcon, BorderLayout.WEST);
+        skinInfoPill.add(skinHint, BorderLayout.CENTER);
+        cardPlayer.add(skinInfoPill);
 
-        cardsGrid.add(cardPlayer);
+                cardsGrid.add(cardPlayer);
 
         // ================= RIGHT CARD: VERSIONS & MODPACKS =================
         JPanel cardVersion = createCardContainer();
@@ -1139,6 +1180,17 @@ public class Main extends JFrame {
             updateSummaryLine();
         });
         cardRam.add(sliderRam);
+        cardRam.add(Box.createVerticalStrut(6));
+
+        JPanel ramPresets = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        ramPresets.setOpaque(false);
+        ramPresets.add(createChipButton("4 ГБ", e -> setRamValue(4096)));
+        ramPresets.add(createChipButton("6 ГБ (Топ для YOLO)", Icons.fire(11, new Color(0xF9, 0x73, 0x16)), e -> setRamValue(6144)));
+        ramPresets.add(createChipButton("8 ГБ (Мощный)", Icons.sparkles(11, new Color(0x38, 0xBD, 0xF8)), e -> setRamValue(8192)));
+        ramPresets.add(createChipButton("12 ГБ", e -> setRamValue(12288)));
+        ramPresets.add(createChipButton("16 ГБ", e -> setRamValue(16384)));
+        cardRam.add(ramPresets);
+
         list.add(cardRam);
         list.add(Box.createVerticalStrut(14));
 
@@ -1270,7 +1322,7 @@ public class Main extends JFrame {
         JPanel card = createCardContainer();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
 
-        JLabel title = new JLabel("Minecraft Launcher (Java Edition)", Icons.tabAbout(18, currentTheme.accentPrimary), JLabel.LEFT);
+        JLabel title = new JLabel("Mex Launcher — Сделано с любовью специально для моих друганов", Icons.heart(16, new Color(0xF4, 0x3F, 0x5E)), JLabel.LEFT);
         title.setIconTextGap(8);
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
         title.setForeground(Color.WHITE);
@@ -1278,12 +1330,14 @@ public class Main extends JFrame {
         card.add(Box.createVerticalStrut(10));
 
         JTextArea desc = new JTextArea(
-            "• Чистая нативная реализация на OpenJDK 25 + компиляция в автономный Windows EXE через jpackage.\n" +
-            "• Встроенные сборки OptiFine, Fabric, Forge и Forge + OptiFine.\n" +
-            "• 5 визуальных тем оформления: Изумруд, Алмаз, Незерит, Аметист, Редстоун.\n" +
-            "• Офлайн-авторизация и генерация UUID (RFC 4122 v3).\n" +
-            "• Прямой запуск без внешних лаунчеров и прямая загрузка Mojang CDN.\n\n" +
-            "Приятной игры!"
+            "Эксклюзивный лаунчер Minecraft, собранный специально для лучших друганов!\n\n" +
+            "ПРЕИМУЩЕСТВА И ФИШКИ:\n" +
+            "• Предустановленная сборка YOLO (53 мода: огнестрел TACZ, хоррор-двеллеры, шейдеры Oculus, данжи)\n" +
+            "• Полноценный выбор и загрузка скинов (готовая коллекция, выбор любого .PNG или по нику Mojang)\n" +
+            "• Скины автоматически работают прямо в игре (MEX SkinPack)\n" +
+            "• Чистая нативная среда Java 17 + умная оптимизация памяти (Aikar\'s G1GC Flags)\n" +
+            "• Никакой рекламы, шпионского софта и тормозов — мгновенный старт\n\n" +
+            "Приятной игры всей банде!"
         );
         desc.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         desc.setForeground(new Color(0xCB, 0xD5, 0xE1));
@@ -1296,6 +1350,92 @@ public class Main extends JFrame {
     }
 
     // ================= ACTIONS & HELPERS =================
+    private void setRamValue(int mb) {
+        if (sliderRam != null) {
+            sliderRam.setValue(mb);
+        }
+        config.ramMb = mb;
+        if (lblRamVal != null) {
+            lblRamVal.setText(mb + " МБ (" + String.format("%.1f", mb / 1024.0) + " ГБ)");
+        }
+        config.save();
+        updateSummaryLine();
+    }
+
+    private void switchSkinPreset(String presetKey) {
+        config.skinType = presetKey;
+        config.customSkinPath = "";
+        config.skinName = SkinManager.PRESET_NAMES.getOrDefault(presetKey, presetKey);
+        config.save();
+        if (skinViewPanel != null) {
+            skinViewPanel.refreshFromConfig(config);
+        }
+        updateSummaryLine();
+        SkinManager.applySkinToGame(SkinManager.getSkinImage(config), config.gameDir, config.nickname);
+        setStatus("Скин успешно выбран: " + config.skinName, Icons.checkCircle(14, currentTheme.accentPrimary));
+    }
+
+    private void chooseCustomSkin() {
+        JFileChooser fc = new JFileChooser();
+        fc.setDialogTitle("Выберите файл скина Minecraft (.png)");
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Minecraft Скины (*.png)", "png"));
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+            File sel = fc.getSelectedFile();
+            try {
+                java.awt.image.BufferedImage skin = SkinManager.loadCustomSkin(sel);
+                config.skinType = "custom";
+                config.customSkinPath = sel.getAbsolutePath();
+                config.skinName = sel.getName().replace(".png", "");
+                config.save();
+                if (skinViewPanel != null) {
+                    skinViewPanel.setCustomSkin(skin, config.skinName);
+                }
+                updateSummaryLine();
+                SkinManager.applySkinToGame(skin, config.gameDir, config.nickname);
+                setStatus("Пользовательский скин применён: " + config.skinName, Icons.checkCircle(14, currentTheme.accentPrimary));
+                JOptionPane.showMessageDialog(this, "Скин '" + config.skinName + "' успешно применён и будет отображаться в игре!", "Скин обновлён", JOptionPane.INFORMATION_MESSAGE);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Ошибка загрузки скина:\n" + ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void downloadSkinByNick() {
+        String nick = JOptionPane.showInputDialog(this, "Введите ник лицензионного игрока Minecraft\n(например: Notch, Dream, MrBeast):", "Загрузка скина по нику", JOptionPane.QUESTION_MESSAGE);
+        if (nick != null && !nick.trim().isEmpty()) {
+            new Thread(() -> {
+                try {
+                    SwingUtilities.invokeLater(() -> setStatus("Загрузка скина игрока " + nick + "...", Icons.download(14, currentTheme.accentPrimary)));
+                    java.awt.image.BufferedImage skin = SkinManager.downloadSkinByNickname(nick.trim());
+                    java.nio.file.Path skinsDir = java.nio.file.Paths.get(config.gameDir, "skins");
+                    java.nio.file.Files.createDirectories(skinsDir);
+                    java.nio.file.Path target = skinsDir.resolve(nick.trim() + ".png");
+                    javax.imageio.ImageIO.write(skin, "png", target.toFile());
+
+                    config.skinType = "custom";
+                    config.customSkinPath = target.toAbsolutePath().toString();
+                    config.skinName = "Скин " + nick.trim();
+                    config.save();
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (skinViewPanel != null) {
+                            skinViewPanel.setCustomSkin(skin, config.skinName);
+                        }
+                        updateSummaryLine();
+                        SkinManager.applySkinToGame(skin, config.gameDir, config.nickname);
+                        setStatus("Скин игрока " + nick.trim() + " успешно применён!", Icons.checkCircle(14, currentTheme.accentPrimary));
+                        JOptionPane.showMessageDialog(this, "Скин игрока " + nick.trim() + " загружен и применён!", "Успех", JOptionPane.INFORMATION_MESSAGE);
+                    });
+                } catch (Exception ex) {
+                    SwingUtilities.invokeLater(() -> {
+                        setStatus("Ошибка загрузки скина: " + ex.getMessage(), Icons.winClose(14, new Color(0xF4, 0x3F, 0x5E)));
+                        JOptionPane.showMessageDialog(this, ex.getMessage(), "Ошибка", JOptionPane.ERROR_MESSAGE);
+                    });
+                }
+            }).start();
+        }
+    }
+
     private void switchAvatar(String type) {
         config.avatar = type;
         config.save();
@@ -1364,7 +1504,7 @@ public class Main extends JFrame {
         if (lblModDesc == null || entry == null) return;
 
         if (entry.badge.contains("YOLO")) {
-            lblModDesc.setText("<html><span style='color:#F97316;'><b>[Сборка YOLO 1.20.1 Forge]</b></span> <b>53 мода:</b> Оружие TACZ, хоррор-двеллеры (The Man from the Fog, Cave Dweller, Knocker), оптимизация Embeddium+Oculus (шейдеры), Plasmo Voice и данжи YUNG's.</html>");
+            lblModDesc.setText("<html><span style='color:#F97316;'><b>[Сборка YOLO 1.20.1 Forge]</b></span> <b>53 мода:</b> Огнестрел TACZ, хорроры, шейдеры Oculus, Plasmo Voice и данжи YUNG's.</html>");
         } else if (entry.badge.contains("OPTIFINE") && !entry.badge.contains("FORGE")) {
             lblModDesc.setText("<html><span style='color:#38BDF8;'><b>[OptiFine HD]</b></span> <b>Оптимизация и графика:</b> Двукратный прирост FPS, поддержка шейдеров BSL и зум на клавишу C.</html>");
         } else if (entry.badge.contains("FABRIC")) {
@@ -1414,6 +1554,9 @@ public class Main extends JFrame {
 
     private void applyTheme(UITheme theme) {
         this.currentTheme = theme;
+        if (skinViewPanel != null) {
+            skinViewPanel.setTheme(theme);
+        }
         if (btnTabPlay != null) {
             btnTabPlay.setForeground(theme.accentPrimary);
         }

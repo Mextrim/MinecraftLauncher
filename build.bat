@@ -6,7 +6,6 @@ mkdir "build"
 javac -encoding UTF-8 -d build src\com\craftlauncher\*.java
 if errorlevel 1 (
     echo [ERROR] Failed to compile Java classes.
-    pause
     exit /b 1
 )
 
@@ -19,12 +18,13 @@ if exist "dist\MinecraftLauncher\app" (
     copy /Y Launcher.jar "dist\MinecraftLauncher\app\Launcher.jar" >nul
 )
 
-echo [3/3] Compiling native MinecraftLauncher.exe...
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /platform:anycpu /win32icon:app.ico /out:MinecraftLauncher.exe LauncherBootstrap.cs >nul
+echo [3/3] Compiling native MexLauncher.exe and MinecraftLauncher.exe...
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:winexe /optimize+ /platform:anycpu /win32icon:app.ico /out:MexLauncher.exe LauncherBootstrap.cs >nul
+copy /Y MexLauncher.exe MinecraftLauncher.exe >nul
 
 echo.
 echo ===================================================
-echo  Build finished successfully with FontAwesome!
-echo  Run: MinecraftLauncher.exe or Launcher.jar
+echo  Build finished successfully!
+echo  Run: MexLauncher.exe or Launcher.jar
 echo ===================================================
 endlocal

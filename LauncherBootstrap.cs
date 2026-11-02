@@ -21,7 +21,7 @@ namespace MinecraftLauncher
             {
                 MessageBox.Show(
                     "Не найден исполняемый файл Launcher.jar!\n\nУбедитесь, что Launcher.jar находится в папке с приложением.", 
-                    "Minecraft Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    "Mex Launcher", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -31,7 +31,7 @@ namespace MinecraftLauncher
                 DialogResult res = MessageBox.Show(
                     "На вашем компьютере не найдена Java (требуется Java 17 или новее).\n\n" +
                     "Хотите открыть страницу загрузки официальной версии Java (Adoptium Temurin OpenJDK)?",
-                    "Minecraft Launcher — Требуется Java",
+                    "Mex Launcher — Требуется Java",
                     MessageBoxButtons.YesNo,
                     MessageBoxIcon.Question
                 );

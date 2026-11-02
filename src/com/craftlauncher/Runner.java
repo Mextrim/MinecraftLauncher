@@ -101,6 +101,14 @@ public class Runner {
             classPaths.add(baseClientJar.toAbsolutePath().toString().replace('\\', '/'));
         }
 
+        // Apply active player skin to Minecraft
+        try {
+            SkinManager.applySkinToGame(SkinManager.getSkinImage(config), base.toString(), config.nickname);
+            onLog.accept("[JavaRunner] Скин игрока успешно применён к игре: " + config.skinName);
+        } catch (Exception ex) {
+            onLog.accept("[JavaRunner] Предупреждение: не удалось обновить скин: " + ex.getMessage());
+        }
+
         // Write classpath to argument file (using forward slashes to avoid escape char issues)
         Path argFile = base.resolve("minecraft_args.txt");
         String combinedClasspath = String.join(";", classPaths);
@@ -110,13 +118,24 @@ public class Runner {
 
         List<String> command = new ArrayList<>();
         command.add(javaExecutable);
-        command.add("-Xms512M");
+        command.add("-Xms1024M");
         command.add("-Xmx" + config.ramMb + "M");
+        command.add("-XX:+UseG1GC");
+        command.add("-XX:+ParallelRefProcEnabled");
+        command.add("-XX:MaxGCPauseMillis=200");
+        command.add("-XX:+UnlockExperimentalVMOptions");
+        command.add("-XX:+DisableExplicitGC");
+        command.add("-XX:+AlwaysPreTouch");
+        command.add("-XX:G1NewSizePercent=30");
+        command.add("-XX:G1MaxNewSizePercent=40");
+        command.add("-XX:G1ReservePercent=20");
         command.add("-Djava.library.path=" + nativesDir.toAbsolutePath());
+        command.add("-Dminecraft.launcher.brand=MexLauncher");
+        command.add("-Dminecraft.launcher.version=2.5");
 
         if (config.customJvmArgs != null && !config.customJvmArgs.isBlank()) {
             for (String arg : config.customJvmArgs.split(" ")) {
-                if (!arg.isBlank()) command.add(arg);
+                if (!arg.isBlank() && !command.contains(arg)) command.add(arg);
             }
         }
 
@@ -148,8 +167,7 @@ public class Runner {
                 }
             }
         } else {
-            command.add("-Dminecraft.launcher.brand=CraftLauncherJava");
-            command.add("-Dminecraft.launcher.version=2.0");
+            // Vanilla brand
         }
 
         // Argument file for classpath (circumvents Windows 32767 char cmd limit)

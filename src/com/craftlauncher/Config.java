@@ -19,6 +19,9 @@ public class Config {
     public String theme = "emerald";
     public String avatar = "steve";
     public String modLoader = "all";
+    public String skinType = "steve";
+    public String customSkinPath = "";
+    public String skinName = "Стив (Классический)";
 
     public Config() {
         String appdata = System.getenv("APPDATA");
@@ -35,7 +38,12 @@ public class Config {
         }
         Path dir = Paths.get(appdata, ".minecraft");
         try { Files.createDirectories(dir); } catch (Exception ignored) {}
-        return dir.resolve("craft_launcher_java.json");
+        Path mexPath = dir.resolve("mex_launcher_config.json");
+        if (!Files.exists(mexPath)) {
+            Path oldPath = dir.resolve("craft_launcher_java.json");
+            if (Files.exists(oldPath)) return oldPath;
+        }
+        return mexPath;
     }
 
     public static Config load() {
@@ -58,6 +66,9 @@ public class Config {
                 cfg.theme = v.get("theme").asString(cfg.theme);
                 cfg.avatar = v.get("avatar").asString(cfg.avatar);
                 cfg.modLoader = v.get("modLoader").asString(cfg.modLoader);
+                cfg.skinType = v.get("skinType").asString(cfg.skinType);
+                cfg.customSkinPath = v.get("customSkinPath").asString(cfg.customSkinPath);
+                cfg.skinName = v.get("skinName").asString(cfg.skinName);
             } catch (Exception e) {
                 System.err.println("Config load error: " + e.getMessage());
             }
@@ -82,7 +93,10 @@ public class Config {
             sb.append("  \"customJvmArgs\": \"").append(escape(customJvmArgs)).append("\",\n");
             sb.append("  \"theme\": \"").append(escape(theme)).append("\",\n");
             sb.append("  \"avatar\": \"").append(escape(avatar)).append("\",\n");
-            sb.append("  \"modLoader\": \"").append(escape(modLoader)).append("\"\n");
+            sb.append("  \"modLoader\": \"").append(escape(modLoader)).append("\",\n");
+            sb.append("  \"skinType\": \"").append(escape(skinType)).append("\",\n");
+            sb.append("  \"customSkinPath\": \"").append(escape(customSkinPath)).append("\",\n");
+            sb.append("  \"skinName\": \"").append(escape(skinName)).append("\"\n");
             sb.append("}\n");
             Files.writeString(p, sb.toString(), StandardCharsets.UTF_8);
         } catch (Exception e) {

@@ -105,6 +105,7 @@ public class Icons {
     public static final String XMARK = "\uf00d";
     public static final String FIRE = "\uf06d";
     public static final String DOWNLOAD = "\uf019";
+    public static final String HEART = "\uf004";
 
     // Nav tabs
     public static Icon tabPlay(float size, Color color) { return fa(GAMEPAD, size, color); }
@@ -130,6 +131,8 @@ public class Icons {
     public static Icon fabric(float size, Color color) { return fa(CUBES, size, color); }
     public static Icon forge(float size, Color color) { return fa(HAMMER, size, color); }
     public static Icon forgeOptifine(float size, Color color) { return fa(SHIELD, size, color); }
+    public static Icon shield(float size, Color color) { return fa(SHIELD, size, color); }
+    public static Icon sparkles(float size, Color color) { return fa(SPARKLES, size, color); }
     public static Icon vanilla(float size, Color color) { return fa(CUBE, size, color); }
     public static Icon star(float size, Color color) { return fa(STAR, size, color); }
     public static Icon fire(float size, Color color) { return fa(FIRE, size, color); }
@@ -166,6 +169,10 @@ public class Icons {
     public static Icon winClose(float size, Color color) { return fa(XMARK, size, color); }
 
     // Native Status Dot
+    public static Icon heart(float size, Color color) {
+        return fa(HEART, size, color != null ? color : new Color(0xF4, 0x3F, 0x5E));
+    }
+
     public static Icon dot(int size, Color color) {
         return new Icon() {
             @Override
